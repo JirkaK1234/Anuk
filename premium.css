@@ -1,0 +1,234 @@
+/* Anuk premium layer: final visual authority loaded after legacy styles. */
+:root,
+html[data-accent="teal"]{
+  --ui-accent:#2DD4BF;
+  --ui-accent-2:#7DD3FC;
+  --ui-accent-rgb:45 212 191;
+}
+
+html[data-accent="violet"]{
+  --ui-accent:#A78BFA;
+  --ui-accent-2:#C084FC;
+  --ui-accent-rgb:167 139 250;
+}
+
+html[data-accent="blue"]{
+  --ui-accent:#60A5FA;
+  --ui-accent-2:#38BDF8;
+  --ui-accent-rgb:96 165 250;
+}
+
+html[data-accent="amber"]{
+  --ui-accent:#F5B84B;
+  --ui-accent-2:#F97316;
+  --ui-accent-rgb:245 184 75;
+}
+
+body{
+  color:#EEF4FF;
+  background:
+    radial-gradient(900px 560px at 82% 0%, rgb(var(--ui-accent-rgb) / .13), transparent 62%),
+    radial-gradient(760px 500px at 10% 10%, rgba(139,92,246,.11), transparent 58%),
+    radial-gradient(820px 560px at 52% 86%, rgba(255,255,255,.045), transparent 66%),
+    linear-gradient(180deg, #070A12 0%, #0B1020 54%, #08131B 100%);
+}
+
+body::before{
+  background:
+    radial-gradient(620px 360px at 24% 22%, rgba(139,92,246,.14), transparent 70%),
+    radial-gradient(720px 420px at 80% 16%, rgb(var(--ui-accent-rgb) / .14), transparent 72%);
+  filter:blur(34px) saturate(110%);
+  opacity:.34;
+}
+
+body::after,
+html[data-theme="contrast"] body::after,
+html[data-theme="calm"] body::after{
+  background:
+    radial-gradient(900px 560px at 82% 0%, rgb(var(--ui-accent-rgb) / .12), transparent 62%),
+    radial-gradient(760px 500px at 10% 10%, rgba(139,92,246,.10), transparent 58%),
+    linear-gradient(180deg, #070A12 0%, #0B1020 54%, #08131B 100%) !important;
+  background-size:auto !important;
+}
+
+html[data-effects="quiet"] body::before,
+html[data-effects="off"] body::before{
+  animation:none !important;
+  filter:blur(18px) saturate(100%);
+  opacity:.18;
+}
+
+html[data-effects="quiet"] .bg-svg,
+html[data-effects="off"] .bg-svg,
+html[data-effects="off"] body::before,
+html[data-effects="off"] body::after,
+.bg::before,
+.bg::after{
+  display:none !important;
+}
+
+.card,
+.feed-card,
+.profile-card,
+.media-card,
+.feed-item,
+.modal__panel,
+.chat-sidebar,
+.chat-panel,
+.admin-card{
+  border:1px solid rgba(226,232,240,.12) !important;
+  border-radius:20px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.068), rgba(255,255,255,.028)),
+    rgba(10,16,30,.84) !important;
+  box-shadow:
+    0 22px 76px rgba(0,0,0,.33),
+    0 1px 0 rgba(255,255,255,.07) inset !important;
+}
+
+html[data-effects="quiet"] .card,
+html[data-effects="quiet"] .feed-card,
+html[data-effects="quiet"] .profile-card,
+html[data-effects="quiet"] .media-card,
+html[data-effects="quiet"] .feed-item,
+html[data-effects="quiet"] .modal__panel,
+html[data-effects="quiet"] .chat-sidebar,
+html[data-effects="quiet"] .chat-panel,
+html[data-effects="off"] .card,
+html[data-effects="off"] .feed-card,
+html[data-effects="off"] .profile-card,
+html[data-effects="off"] .media-card,
+html[data-effects="off"] .feed-item,
+html[data-effects="off"] .modal__panel,
+html[data-effects="off"] .chat-sidebar,
+html[data-effects="off"] .chat-panel{
+  backdrop-filter:none !important;
+}
+
+.feed-hero,
+.account-header,
+.profile-hero,
+.app-quicknav{
+  border:1px solid rgba(226,232,240,.12) !important;
+  background:rgba(8,13,24,.78) !important;
+  box-shadow:
+    0 16px 56px rgba(0,0,0,.26),
+    0 1px 0 rgba(255,255,255,.07) inset !important;
+}
+
+.btn,
+.reaction-btn,
+.tab-btn,
+.modal__close,
+.chat-tools button,
+.chat-quick-replies button,
+.chat-attachment-chip button{
+  min-height:44px;
+  border:1px solid rgba(226,232,240,.16) !important;
+  border-radius:11px !important;
+  color:#EEF4FF;
+  font-weight:750;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.038)),
+    rgba(12,18,31,.82) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.20),
+    0 1px 0 rgba(255,255,255,.07) inset !important;
+  text-shadow:none !important;
+}
+
+.btn::before,
+.reaction-btn::before,
+.tab-btn::before,
+.modal__close::before{
+  display:none !important;
+}
+
+.btn-primary,
+.reaction-btn.active,
+.tab-btn.active{
+  color:#06120F !important;
+  border-color:rgb(var(--ui-accent-rgb) / .55) !important;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--ui-accent) 92%, white), var(--ui-accent) 52%, var(--ui-accent-2)) !important;
+  box-shadow:
+    0 14px 34px rgb(var(--ui-accent-rgb) / .18),
+    0 1px 0 rgba(255,255,255,.24) inset !important;
+}
+
+.btn:hover,
+.reaction-btn:hover,
+.tab-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgb(var(--ui-accent-rgb) / .30) !important;
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.24),
+    0 1px 0 rgba(255,255,255,.10) inset !important;
+}
+
+.field__input,
+.feed-search,
+.chat-composer textarea,
+select.field__input,
+textarea.field__input{
+  border:1px solid rgba(226,232,240,.14) !important;
+  border-radius:12px !important;
+  background:rgba(6,10,18,.56) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.05) inset,
+    0 10px 26px rgba(0,0,0,.12) !important;
+}
+
+.field__input:focus,
+.feed-search:focus-within,
+.chat-composer textarea:focus{
+  border-color:rgb(var(--ui-accent-rgb) / .62) !important;
+  box-shadow:
+    0 0 0 4px rgb(var(--ui-accent-rgb) / .11),
+    0 12px 30px rgba(0,0,0,.16) !important;
+}
+
+html[data-navigation="compact"] .app-quicknav{
+  gap:10px;
+  padding:8px;
+}
+
+html[data-navigation="compact"] .app-nav-btn,
+html[data-navigation="compact"] .feed-actions .btn{
+  min-height:40px;
+  padding:9px 12px;
+  font-size:13px;
+}
+
+.settings-grid-form{
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+}
+
+.settings-toggle-card{
+  min-height:92px;
+}
+
+.settings-save-status{
+  grid-column:1 / -1;
+  min-height:22px;
+  color:rgba(226,232,240,.78);
+  font-size:13px;
+  font-weight:700;
+}
+
+.settings-save-status[data-state="saving"]{
+  color:rgb(var(--ui-accent-rgb) / .90);
+}
+
+.settings-save-status[data-state="success"]{
+  color:#86EFAC;
+}
+
+.settings-save-status[data-state="error"]{
+  color:#FDA4AF;
+}
+
+@media (max-width: 900px){
+  .settings-grid-form{
+    grid-template-columns:1fr;
+  }
+}

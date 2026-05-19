@@ -1,0 +1,26 @@
+[
+  {
+    "id": "follow-mp2uvl0z24210",
+    "fromUserId": "1778574346897-7fddb1fb40b38",
+    "toUserId": "1778578356746-f0bd6906498cc",
+    "status": "accepted",
+    "createdAt": "2026-05-12T16:39:22.931Z",
+    "respondedAt": "2026-05-12T17:01:52.977Z"
+  },
+  {
+    "id": "follow-mp2uy4ku390b3",
+    "fromUserId": "1778604031598-d4d4a66565d86",
+    "toUserId": "1778578356746-f0bd6906498cc",
+    "status": "accepted",
+    "createdAt": "2026-05-12T16:41:21.582Z",
+    "respondedAt": "2026-05-13T14:40:15.313Z"
+  },
+  {
+    "id": "follow-mp2vp6h8ecd3d",
+    "fromUserId": "1778578356746-f0bd6906498cc",
+    "toUserId": "1778574346897-7fddb1fb40b38",
+    "status": "accepted",
+    "createdAt": "2026-05-12T17:02:23.756Z",
+    "respondedAt": "2026-05-12T17:03:04.509Z"
+  }
+]

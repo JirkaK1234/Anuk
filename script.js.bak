@@ -1,0 +1,2104 @@
+﻿(() => {
+  const statusEl = document.getElementById('status');
+  const actions = document.querySelectorAll('[data-action]');
+
+  const messages = {
+    register: 'Registrace: vyplňte formulář...',
+    login: 'Přihlášení: připravujeme další krok...',
+    forgot: 'Zapomenuté heslo: vyplňte email...'
+  };
+
+  const getCurrentUserId = () => localStorage.getItem('anukCurrentUser');
+  const setCurrentUserId = (id) => localStorage.setItem('anukCurrentUser', id);
+  const clearCurrentUser = () => localStorage.removeItem('anukCurrentUser');
+  const getApiBase = () => {
+    const { protocol, origin, hostname } = window.location;
+    if (protocol === 'http:' || protocol === 'https:') {
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.onrender.com')) return origin;
+    }
+    return 'https://anuk.onrender.com';
+  };
+
+  // Z·kladnů escapov·n· pro text v HTML (a tak· pro hodnoty v atributech).
+  // Použ·váme to v ·ablon·ch pro seznamy (sledování/blokace), aby tam nemohly rozbýt layout
+  // p··padnů speci·ln· znaky.
+  const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const textToHtml = (value) => escapeHtml(value).replace(/\r?\n/g, '<br>');
+
+  const TEXT_STYLE_DEFAULTS = {
+    preset: 'soft',
+    fontFamily: 'Inter',
+    fontSize: 20,
+    textColor: '#f8fafc',
+    backgroundColor: '#1f2937',
+    textAlign: 'left',
+    borderStyle: 'glass',
+    bold: false,
+    italic: false,
+    shadow: true
+  };
+
+  const TEXT_PRESETS = {
+    soft: { textColor: '#f8fafc', backgroundColor: '#1f2937', borderStyle: 'glass', shadow: true },
+    sunset: { textColor: '#fff7ed', backgroundColor: '#9a3412', borderStyle: 'bold', shadow: true },
+    ocean: { textColor: '#ecfeff', backgroundColor: '#155e75', borderStyle: 'glass', shadow: true },
+    ink: { textColor: '#f8fafc', backgroundColor: '#020617', borderStyle: 'clean', shadow: true },
+    paper: { textColor: '#1f2937', backgroundColor: '#f8fafc', borderStyle: 'clean', shadow: false }
+  };
+
+  const allowedFonts = new Set(['Inter', 'Georgia', 'Trebuchet MS', 'Courier New', 'Impact']);
+  const allowedAligns = new Set(['left', 'center', 'right']);
+  const allowedBorders = new Set(['glass', 'clean', 'bold']);
+  const allowedPresets = new Set(Object.keys(TEXT_PRESETS));
+  const normalizeHexColor = (value, fallback) => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? String(value) : fallback;
+
+  const sanitizeTextStyle = (style = {}) => {
+    const preset = allowedPresets.has(String(style.preset || '')) ? String(style.preset) : TEXT_STYLE_DEFAULTS.preset;
+    const fontSize = Math.max(16, Math.min(34, Number.parseInt(style.fontSize, 10) || TEXT_STYLE_DEFAULTS.fontSize));
+    return {
+      preset,
+      fontFamily: allowedFonts.has(String(style.fontFamily || '')) ? String(style.fontFamily) : TEXT_STYLE_DEFAULTS.fontFamily,
+      fontSize,
+      textColor: normalizeHexColor(style.textColor, TEXT_STYLE_DEFAULTS.textColor),
+      backgroundColor: normalizeHexColor(style.backgroundColor, TEXT_STYLE_DEFAULTS.backgroundColor),
+      textAlign: allowedAligns.has(String(style.textAlign || '')) ? String(style.textAlign) : TEXT_STYLE_DEFAULTS.textAlign,
+      borderStyle: allowedBorders.has(String(style.borderStyle || '')) ? String(style.borderStyle) : TEXT_STYLE_DEFAULTS.borderStyle,
+      bold: Boolean(style.bold),
+      italic: Boolean(style.italic),
+      shadow: style.shadow !== false
+    };
+  };
+
+  const textStyleToCss = (style = {}) => {
+    const safe = sanitizeTextStyle(style);
+    const fontStack = safe.fontFamily === 'Inter' ? 'Inter, system-ui, sans-serif' : `"${safe.fontFamily}", Inter, system-ui, sans-serif`;
+    const border = safe.borderStyle === 'bold'
+      ? `2px solid ${safe.textColor}`
+      : safe.borderStyle === 'clean'
+        ? '1px solid rgba(15, 23, 42, .12)'
+        : '1px solid rgba(255, 255, 255, .22)';
+    return [
+      `font-family:${fontStack}`,
+      `font-size:${safe.fontSize}px`,
+      `color:${safe.textColor}`,
+      `background:${safe.backgroundColor}`,
+      `text-align:${safe.textAlign}`,
+      `font-weight:${safe.bold ? 800 : 500}`,
+      `font-style:${safe.italic ? 'italic' : 'normal'}`,
+      `text-shadow:${safe.shadow ? '0 2px 12px rgba(0,0,0,.28)' : 'none'}`,
+      `border:${border}`
+    ].join(';');
+  };
+
+  const renderStyledTextPost = (item) => {
+    const style = sanitizeTextStyle(item?.textStyle || {});
+    const body = textToHtml(item?.description || item?.title || '') || 'Bez textu';
+    return `<div class="feed-text feed-text--styled feed-text--${style.preset}" style="${textStyleToCss(style)}">${body}</div>`;
+  };
+
+  const api = async (path, options = {}) => {
+    const currentUserId = getCurrentUserId();
+    // Důležité: options se nesmí dostat do fetch() až po headers, jinak by přepsal hlavičky.
+    // a zmizelo by x-user-id => admin API by vracelo 403.
+    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    if (currentUserId) headers['x-user-id'] = currentUserId;
+
+    const fetchOptions = { ...options, headers };
+    if (options.body) {
+      fetchOptions.body = JSON.stringify(options.body);
+    } else {
+      delete fetchOptions.body;
+    }
+
+    const response = await fetch(getApiBase() + path, fetchOptions);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(`${data?.message || 'Server error'} (${response.status})`);
+      error.status = response.status;
+      throw error;
+    }
+    return data;
+  };
+
+  const registerUser = (payload) => api('/api/register', { method: 'POST', body: payload });
+  const loginUser = (contact, password) => api('/api/login', { method: 'POST', body: { contact, password } });
+  const forgotUser = (contact) => api('/api/forgot', { method: 'POST', body: { contact } });
+  const fetchUser = (id) => api(`/api/users/${encodeURIComponent(id)}`);
+  const updateUserProfile = (id, payload) => api(`/api/users/${encodeURIComponent(id)}/profile`, { method: 'POST', body: payload });
+  const updateUserIdentity = (id, payload) => api(`/api/users/${encodeURIComponent(id)}/identity`, { method: 'POST', body: payload });
+  const deleteOwnAccount = (id, payload) => api(`/api/users/${encodeURIComponent(id)}`, { method: 'DELETE', body: payload });
+  const changeUserPassword = (id, payload) => api(`/api/users/${encodeURIComponent(id)}/password`, { method: 'POST', body: payload });
+  const fetchUserSettings = (id) => api(`/api/users/${encodeURIComponent(id)}/settings`);
+  const updateUserSettings = (id, payload) => api(`/api/users/${encodeURIComponent(id)}/settings`, { method: 'POST', body: payload });
+  const fetchMediaItems = (userId) => api(`/api/media?ownerId=${encodeURIComponent(userId)}`);
+  const uploadMediaItem = (payload) => api('/api/media', { method: 'POST', body: payload });
+  const fetchUsersPublic = () => api('/api/users');
+  const fetchFollowing = () => api('/api/following');
+  const fetchFollowers = () => api('/api/followers');
+  const fetchIncomingFollowRequests = () => api('/api/follow/requests');
+  const fetchOutgoingFollowRequests = () => api('/api/follow/requests/outgoing');
+  const cancelFollowRequest = (id) => api(`/api/follow/requests/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
+  const respondFollowRequest = (id, action) => api(`/api/follow/requests/${encodeURIComponent(id)}/respond`, { method: 'POST', body: { action } });
+  const removeFollower = (fromUserId) => api('/api/followers/remove', { method: 'POST', body: { fromUserId } });
+  const blockUser = (userId) => api('/api/block', { method: 'POST', body: { userId } });
+  const unblockUser = (userId) => api('/api/unblock', { method: 'POST', body: { userId } });
+  const fetchBlockedUsers = () => api('/api/blocks');
+  const fetchNotifications = () => api('/api/notifications');
+  const markNotificationRead = (id) => api(`/api/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' });
+  const deleteNotification = (id) => api(`/api/notifications/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const markAllNotificationsRead = () => api('/api/notifications/read-all', { method: 'POST' });
+  const fetchAdminUsers = () => api('/api/admin/users');
+  const banAdminUser = (id, hours, reason) => api(`/api/admin/users/${encodeURIComponent(id)}/ban`, { method: 'POST', body: { hours, reason } });
+  const unblockAdminUser = (id) => api(`/api/admin/users/${encodeURIComponent(id)}/unban`, { method: 'POST' });
+  const annotateUserWifi = (id, wifiName) => api(`/api/admin/users/${encodeURIComponent(id)}/note`, { method: 'POST', body: { wifiName } });
+  const changeUserRole = (id, role) => api(`/api/admin/users/${encodeURIComponent(id)}/role`, { method: 'POST', body: { role } });
+  const deleteAdminUser = (id) => api(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const fetchAdminMedia = () => api('/api/admin/media');
+  const deleteAdminMedia = (id) => api(`/api/admin/media/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const annotateMediaWifi = (id, wifiName) => api(`/api/admin/media/${encodeURIComponent(id)}/wifi`, { method: 'POST', body: { wifiName } });
+  const deleteAdminComment = (mediaId, commentId) => api(`/api/media/${encodeURIComponent(mediaId)}/comment/${encodeURIComponent(commentId)}/delete`, { method: 'POST' });
+  const fetchHealth = () => api('/api/health');
+
+  const modal = document.getElementById('modal');
+  const registerForm = document.getElementById('registerForm');
+  const modalCloseButtons = modal ? modal.querySelectorAll('[data-close="true"]') : [];
+
+  // ===== Modal (Přihlášení) =====
+  const loginModal = document.getElementById('loginModal');
+  const loginForm = document.getElementById('loginForm');
+  const loginModalCloseButtons = loginModal ? loginModal.querySelectorAll('[data-close="true"]') : [];
+
+  // ===== Modal (Zapomenuté heslo) =====
+  const forgotModal = document.getElementById('forgotModal');
+  const forgotForm = document.getElementById('forgotForm');
+  const forgotModalCloseButtons = forgotModal ? forgotModal.querySelectorAll('[data-close="true"]') : [];
+
+  const openModal = () => {
+    if (!modal) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    registerForm?.querySelector('input, button, select, textarea')?.focus();
+  };
+
+  const closeModal = () => {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  const openLoginModal = () => {
+    if (!loginModal) return;
+    loginModal.classList.add('is-open');
+    loginModal.setAttribute('aria-hidden', 'false');
+    loginForm?.querySelector('input')?.focus();
+  };
+
+  const closeLoginModal = () => {
+    if (!loginModal) return;
+    loginModal.classList.remove('is-open');
+    loginModal.setAttribute('aria-hidden', 'true');
+  };
+
+  const openForgotModal = () => {
+    if (!forgotModal) return;
+    forgotModal.classList.add('is-open');
+    forgotModal.setAttribute('aria-hidden', 'false');
+    forgotForm?.querySelector('input')?.focus();
+  };
+
+  const closeForgotModal = () => {
+    if (!forgotModal) return;
+    forgotModal.classList.remove('is-open');
+    forgotModal.setAttribute('aria-hidden', 'true');
+  };
+
+  if (modal) {
+    modalCloseButtons.forEach((btn) => {
+      btn.addEventListener('click', closeModal);
+    });
+  }
+
+  if (loginModal) {
+    loginModalCloseButtons.forEach((btn) => {
+      btn.addEventListener('click', closeLoginModal);
+    });
+  }
+
+  if (forgotModal) {
+    forgotModalCloseButtons.forEach((btn) => {
+      btn.addEventListener('click', closeForgotModal);
+    });
+  }
+
+  registerForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fd = new FormData(registerForm);
+    const payload = {
+      contact: fd.get('contact'),
+      password: fd.get('password'),
+      firstName: fd.get('firstName'),
+      lastName: fd.get('lastName'),
+      birthDate: fd.get('birthDate'),
+      gender: fd.get('gender')
+    };
+
+try {
+    const user = await registerUser(payload);
+    setCurrentUserId(user.id);
+
+    if (statusEl) {
+      statusEl.textContent = `Registrace dokončena: ${user.firstName} ${user.lastName}`;
+    }
+
+    closeModal();
+    registerForm.reset();
+    window.location.href = 'account.html';
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = (err?.message || '').includes('existuje')
+        ? 'Tento email nebo číslo už je zaregistrované.'
+        : (err?.message || 'Registrace se nezdařila.');
+    }
+  }
+
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fd = new FormData(loginForm);
+    const contact = fd.get('email');
+    const password = fd.get('password');
+
+    try {
+      const user = await loginUser(contact, password);
+      setCurrentUserId(user.id);
+
+      if (statusEl) {
+        statusEl.textContent = `Přihlášení dokončeno: ${user.firstName || ''} ${user.lastName || ''}`.trim();
+      }
+
+      closeLoginModal();
+      loginForm.reset();
+      window.location.href = 'account.html';
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = err?.message || 'Přihlášení se nezdařilo.';
+      }
+    }
+  });
+
+  forgotForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fd = new FormData(forgotForm);
+    const email = fd.get('email');
+
+    try {
+      await forgotUser(email);
+      if (statusEl) {
+        statusEl.textContent = `Odkaz pro obnovení byl odeslán na: ${email}`;
+      }
+      closeForgotModal();
+      forgotForm.reset();
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = 'Uživatel nenalezen.';
+      }
+    }
+  });
+
+  // ===== Vlastní 3D tilt podle pozice my·i =====
+  const setup3DTilt = (el) => {
+    const maxTilt = 10; // stupn·
+
+    el.addEventListener('pointermove', (e) => {
+      const rect = el.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width; // 0..1
+      const py = (e.clientY - rect.top) / rect.height; // 0..1
+
+      const rotY = (px - 0.5) * (maxTilt * 2); // -..+
+      const rotX = -(py - 0.5) * (maxTilt * 2); // invert kvůli vn·mášn·
+
+      el.style.transform = `perspective(800px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-1px)`;
+    });
+
+    el.addEventListener('pointerleave', () => {
+      el.style.transform = '';
+    });
+  };
+
+  actions.forEach((btn) => {
+    setup3DTilt(btn);
+
+    btn.addEventListener('click', () => {
+      const action = btn.getAttribute('data-action');
+
+      if (action === 'register') {
+        if (statusEl) statusEl.textContent = messages.register;
+        openModal();
+        btn.blur();
+        return;
+      }
+
+      if (action === 'login') {
+        if (statusEl) statusEl.textContent = messages.login;
+        openLoginModal();
+        btn.blur();
+        return;
+      }
+
+      if (action === 'forgot') {
+        if (statusEl) statusEl.textContent = messages.forgot;
+        openForgotModal();
+        btn.blur();
+        return;
+      }
+
+      const msg = messages[action] || 'Probíhá přesměrování';
+      if (statusEl) statusEl.textContent = msg;
+
+      btn.blur();
+    });
+  });
+
+  // ===== Scroll pro modal registraci: myš/kolečko + šipky =====
+  const scrollWrap = document.querySelector('.modal__scroll');
+  const scrollForm = document.getElementById('registerForm');
+  const scrollBtns = scrollWrap ? scrollWrap.querySelectorAll('[data-scroll]') : [];
+
+  const scrollByAmount = (dir) => {
+    if (!scrollForm) return;
+    const delta = dir === 'up' ? -220 : 220;
+    scrollForm.scrollBy({ top: delta, behavior: 'smooth' });
+  };
+
+  // ·ipky
+  scrollBtns.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const dir = btn.getAttribute('data-scroll');
+      scrollByAmount(dir);
+    });
+  });
+
+  // Kolečko / myš i když focus je na inputu: propínej wheel do scrollu formuláře.
+  if (scrollForm) {
+    scrollForm.addEventListener('wheel', (e) => {
+      // Když je modal otevřený, necháme scroll na sebe.
+      if (!modal || !modal.classList.contains('is-open')) return;
+
+      // Pokud je scroll už na kraji, nedělej nic, aby šlo přirozeně scrollovat stránku.
+      const atTop = scrollForm.scrollTop <= 0;
+      const atBottom = scrollForm.scrollTop + scrollForm.clientHeight >= scrollForm.scrollHeight - 1;
+      const goingUp = e.deltaY < 0;
+
+      if ((goingUp && atTop) || (!goingUp && atBottom)) return;
+
+      // zabr·n· dvoj·mu scrollov·n·
+      e.preventDefault();
+
+      // i pro trackpad nastaváme ružn·
+      scrollForm.scrollTop += e.deltaY;
+    }, { passive: false });
+  }
+
+  // Esc zavže modal
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeLoginModal();
+      closeForgotModal();
+    }
+  });
+
+  // ===== účet a média =====
+  const accountUserName = document.getElementById('accountUserName');
+  const openFeedButton = document.getElementById('openFeedButton');
+  const openFollowingButton = document.getElementById('openFollowingButton');
+  const logoutButton = document.getElementById('logoutButton');
+  const accountSettingsButton = document.getElementById('accountSettingsButton');
+  const profileAvatar = document.getElementById('profileAvatar');
+  const profileAvatarLabel = document.getElementById('profileAvatarLabel');
+  const profileName = document.getElementById('profileName');
+  const profileRole = document.getElementById('profileRole');
+  const profileBio = document.getElementById('profileBio');
+  const profileFollowing = document.getElementById('profileFollowing');
+  const profileFollowers = document.getElementById('profileFollowers');
+  const profileCoverVideo = document.getElementById('profileCoverVideo');
+  const profileCoverPlaceholder = document.getElementById('profileCoverPlaceholder');
+  const profileForm = document.getElementById('profileForm');
+  const profilePhotoInput = document.getElementById('profilePhotoInput');
+  const profileVideoInput = document.getElementById('profileVideoInput');
+  const profileBioField = document.getElementById('profileBioField');
+  const mediaForm = document.getElementById('mediaForm');
+  const mediaList = document.getElementById('mediaList');
+  const mediaTextForm = document.getElementById('mediaTextForm');
+  const accountTextPreview = document.getElementById('accountTextPreview');
+  const mediaCameraForm = document.getElementById('mediaCameraForm');
+  const mediaVideoForm = document.getElementById('mediaVideoForm');
+  const mediaFileInput = document.getElementById('mediaFileInput');
+  const mediaVideoKind = document.getElementById('mediaVideoKind');
+  const accountCameraVideo = document.getElementById('accountCameraVideo');
+  const accountCameraCanvas = document.getElementById('accountCameraCanvas');
+  const accountCameraSnap = document.getElementById('accountCameraSnap');
+  const accountCameraRecordVideo = document.getElementById('accountCameraRecordVideo');
+  const accountCameraRecordShort = document.getElementById('accountCameraRecordShort');
+  const accountCameraStop = document.getElementById('accountCameraStop');
+  const accountCameraStatus = document.getElementById('accountCameraStatus');
+  const accountVideoPreview = document.getElementById('accountVideoPreview');
+  const accountVideoKind = document.getElementById('accountVideoKind');
+  const accountVideoRecord = document.getElementById('accountVideoRecord');
+  const accountVideoStop = document.getElementById('accountVideoStop');
+  const accountVideoStatus = document.getElementById('accountVideoStatus');
+  const adminToggleButton = document.getElementById('adminToggleButton');
+  const adminPanel = document.getElementById('adminPanel');
+  const adminCloseButton = document.getElementById('adminCloseButton');
+  const adminUserList = document.getElementById('adminUserList');
+  const refreshAdminList = document.getElementById('refreshAdminList');
+  const refreshAdminMedia = document.getElementById('refreshAdminMedia');
+  const adminHealthRefresh = document.getElementById('adminHealthRefresh');
+  const adminHealthList = document.getElementById('adminHealthList');
+  const adminUserCount = document.getElementById('adminUserCount');
+  const adminBlockedCount = document.getElementById('adminBlockedCount');
+  const adminCreatorCount = document.getElementById('adminCreatorCount');
+  const adminMediaCount = document.getElementById('adminMediaCount');
+  const adminMediaList = document.getElementById('adminMediaList');
+
+  // Admin modal (ban/wifi) · mášsto window.prompt
+  const adminActionModal = document.getElementById('adminActionModal');
+  const adminActionForm = document.getElementById('adminActionForm');
+  const adminActionTitle = document.getElementById('adminActionTitle');
+  const adminModalCloseButtons = adminActionModal ? adminActionModal.querySelectorAll('[data-close="true"]') : [];
+
+  // Nastavení modal
+  const settingsModal = document.getElementById('settingsModal');
+  const settingsPasswordForm = document.getElementById('settingsPasswordForm');
+  const settingsModalCloseButtons = settingsModal ? settingsModal.querySelectorAll('[data-close="true"]') : [];
+  const settingsTabSecurity = document.getElementById('settingsTabSecurity');
+  const settingsTabPrivacy = document.getElementById('settingsTabPrivacy');
+  const settingsTabSocial = document.getElementById('settingsTabSocial');
+  const settingsTabBlocks = document.getElementById('settingsTabBlocks');
+  const settingsTabExport = document.getElementById('settingsTabExport');
+  const settingsSectionSecurity = document.getElementById('settingsSectionSecurity');
+  const settingsSectionPrivacy = document.getElementById('settingsSectionPrivacy');
+  const settingsSectionSocial = document.getElementById('settingsSectionSocial');
+  const settingsSectionBlocks = document.getElementById('settingsSectionBlocks');
+  const settingsSectionExport = document.getElementById('settingsSectionExport');
+  const settingsIdentityForm = document.getElementById('settingsIdentityForm');
+  const settingsDeleteAccountForm = document.getElementById('settingsDeleteAccountForm');
+  const settingsFirstName = document.getElementById('settingsFirstName');
+  const settingsLastName = document.getElementById('settingsLastName');
+  const settingsContact = document.getElementById('settingsContact');
+  const settingsPrivacyForm = document.getElementById('settingsPrivacyForm');
+  const privateAccountToggle = document.getElementById('privateAccountToggle');
+  const notifFollowRequestsToggle = document.getElementById('notifFollowRequestsToggle');
+  const notifFollowAcceptedToggle = document.getElementById('notifFollowAcceptedToggle');
+  const notifFollowRejectedToggle = document.getElementById('notifFollowRejectedToggle');
+  const settingsIncomingList = document.getElementById('settingsIncomingList');
+  const settingsFollowingList = document.getElementById('settingsFollowingList');
+  const settingsFollowersList = document.getElementById('settingsFollowersList');
+  const settingsOutgoingList = document.getElementById('settingsOutgoingList');
+  const settingsBlockForm = document.getElementById('settingsBlockForm');
+  const settingsBlockedList = document.getElementById('settingsBlockedList');
+  const exportMyData = document.getElementById('exportMyData');
+  const notificationsList = document.getElementById('notificationsList');
+  const markAllNotificationsReadBtn = document.getElementById('markAllNotificationsRead');
+
+  const setActiveSettingsSection = (key) => {
+    const sections = {
+      security: settingsSectionSecurity,
+      privacy: settingsSectionPrivacy,
+      social: settingsSectionSocial,
+      blocks: settingsSectionBlocks,
+      export: settingsSectionExport
+    };
+    Object.entries(sections).forEach(([k, el]) => {
+      if (!el) return;
+      el.hidden = k !== key;
+    });
+    const tabs = {
+      security: settingsTabSecurity,
+      privacy: settingsTabPrivacy,
+      social: settingsTabSocial,
+      blocks: settingsTabBlocks,
+      export: settingsTabExport
+    };
+    Object.entries(tabs).forEach(([k, btn]) => {
+      if (!btn) return;
+      btn.classList.toggle('btn-primary', k === key);
+      btn.classList.toggle('btn-secondary', k !== key);
+    });
+  };
+
+  const openSettingsModal = () => {
+    if (!settingsModal) return;
+    settingsModal.classList.add('is-open');
+    settingsModal.setAttribute('aria-hidden', 'false');
+    settingsPasswordForm?.querySelector('input')?.focus();
+  };
+
+  const closeSettingsModal = () => {
+    if (!settingsModal) return;
+    settingsModal.classList.remove('is-open');
+    settingsModal.setAttribute('aria-hidden', 'true');
+  };
+
+  if (settingsModal) {
+    settingsModalCloseButtons.forEach((btn) => btn.addEventListener('click', closeSettingsModal));
+  }
+
+  const renderSettingsLists = async (user) => {
+    // Following / Followers / Outgoing / Blocks
+    const [incoming, following, followers, outgoing, blocked] = await Promise.all([
+      fetchIncomingFollowRequests().catch(() => []),
+      fetchFollowing().catch(() => []),
+      fetchFollowers().catch(() => []),
+      fetchOutgoingFollowRequests().catch(() => []),
+      fetchBlockedUsers().catch(() => [])
+    ]);
+
+    if (settingsIncomingList) {
+      const list = Array.isArray(incoming) ? incoming : [];
+      settingsIncomingList.innerHTML = list.length ? list.map((row) => `
+        <div class="user-row" style="margin:0;" data-request-id="${escapeHtml(row.id)}">
+          <div class="user-row__left">
+            <div class="user-row__avatar" style="background-image:url('${row.from?.profilePhoto || ''}')"></div>
+            <div class="user-row__name">
+              <strong>${escapeHtml(`${row.from?.firstName || ''} ${row.from?.lastName || ''}`.trim() || row.from?.contact || 'Uživatel')}</strong>
+              <span>Žádost o sledování</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="reaction-btn" data-action="respond-request" data-response="accept" data-request-id="${escapeHtml(row.id)}">Schválit</button>
+            <button class="reaction-btn" data-action="respond-request" data-response="reject" data-request-id="${escapeHtml(row.id)}">Zamítnout</button>
+          </div>
+        </div>
+      `).join('') : `<div class="feed-empty">Žádné příchozí žádosti.</div>`;
+    }
+
+    if (settingsFollowingList) {
+      const list = Array.isArray(following) ? following : [];
+      settingsFollowingList.innerHTML = list.length ? list.map((u) => `
+        <div class="user-row" style="margin:0;" data-user-id="${u.id}">
+          <div class="user-row__left">
+            <div class="user-row__avatar" style="background-image:url('${u.profilePhoto || ''}')"></div>
+            <div class="user-row__name">
+              <strong>${escapeHtml(`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.contact)}</strong>
+              <span>${escapeHtml(u.role || 'user')}</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="reaction-btn" data-action="open-user" data-user-id="${u.id}">Profil</button>
+            <button class="reaction-btn" data-action="unfollow" data-user-id="${u.id}">Zružit sledování</button>
+          </div>
+        </div>
+      `).join('') : `<div class="feed-empty">Zatím nikoho nesleduješ.</div>`;
+    }
+
+    if (settingsFollowersList) {
+      const list = Array.isArray(followers) ? followers : [];
+      settingsFollowersList.innerHTML = list.length ? list.map((row) => `
+        <div class="user-row" style="margin:0;" data-user-id="${row.from?.id}">
+          <div class="user-row__left">
+            <div class="user-row__avatar" style="background-image:url('${row.from?.profilePhoto || ''}')"></div>
+            <div class="user-row__name">
+              <strong>${escapeHtml(`${row.from?.firstName || ''} ${row.from?.lastName || ''}`.trim() || row.from?.contact)}</strong>
+              <span>${escapeHtml(row.from?.role || 'user')}</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="reaction-btn" data-action="open-user" data-user-id="${row.from?.id}">Profil</button>
+            <button class="reaction-btn" data-action="remove-follower" data-user-id="${row.from?.id}">Odebrat</button>
+          </div>
+        </div>
+      `).join('') : `<div class="feed-empty">Zatím tě nikdo nesleduje.</div>`;
+    }
+
+    if (settingsOutgoingList) {
+      const list = Array.isArray(outgoing) ? outgoing : [];
+      settingsOutgoingList.innerHTML = list.length ? list.map((row) => `
+        <div class="user-row" style="margin:0;" data-request-id="${escapeHtml(row.id)}">
+          <div class="user-row__left">
+            <div class="user-row__avatar" style="background-image:url('${row.to?.profilePhoto || ''}')"></div>
+            <div class="user-row__name">
+              <strong>${escapeHtml(`${row.to?.firstName || ''} ${row.to?.lastName || ''}`.trim() || row.to?.contact || 'Uživatel')}</strong>
+              <span>Čeká na schválení</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="reaction-btn" data-action="cancel-request" data-request-id="${escapeHtml(row.id)}">Zružit</button>
+          </div>
+        </div>
+      `).join('') : `<div class="feed-empty">Žádné odchozí žádosti.</div>`;
+    }
+
+    if (settingsBlockedList) {
+      const list = Array.isArray(blocked) ? blocked : [];
+      settingsBlockedList.innerHTML = list.length ? list.map((u) => `
+        <div class="user-row" style="margin:0;" data-user-id="${u.id}">
+          <div class="user-row__left">
+            <div class="user-row__avatar" style="background-image:url('${u.profilePhoto || ''}')"></div>
+            <div class="user-row__name">
+              <strong>${escapeHtml(`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.contact)}</strong>
+              <span>${escapeHtml(u.role || 'user')}</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="reaction-btn" data-action="unblock" data-user-id="${u.id}">Odblokovat</button>
+          </div>
+        </div>
+      `).join('') : `<div class="feed-empty">Nikdo není zablokovaný.</div>`;
+    }
+  };
+
+  let adminActionsBound = false;
+  let lastAdminViewerId = '';
+
+  const openAdminActionModal = (mode, userId, defaults = {}) => {
+    if (!adminActionModal || !adminActionForm) return;
+    adminActionModal.classList.add('is-open');
+    adminActionModal.setAttribute('aria-hidden', 'false');
+
+    adminActionForm.mode.value = mode;
+    adminActionForm.userId.value = userId;
+
+    const hoursField = adminActionForm.querySelector('[data-field="hours"]');
+    const reasonField = adminActionForm.querySelector('[data-field="reason"]');
+    const wifiField = adminActionForm.querySelector('[data-field="wifiName"]');
+
+    const setVisible = (el, visible) => {
+      if (!el) return;
+      el.style.display = visible ? '' : 'none';
+    };
+
+    // Reset
+    adminActionForm.hours.value = defaults.hours ?? 48;
+    adminActionForm.reason.value = defaults.reason ?? 'Porušení pravidel';
+    adminActionForm.wifiName.value = defaults.wifiName ?? '';
+
+    if (mode === 'ban-custom') {
+      if (adminActionTitle) adminActionTitle.textContent = 'Vlastní ban';
+      setVisible(hoursField, true);
+      setVisible(reasonField, true);
+      setVisible(wifiField, false);
+      adminActionForm.hours.focus();
+      return;
+    }
+
+    if (mode === 'wifi-user') {
+      if (adminActionTitle) adminActionTitle.textContent = 'WiFi poznámka (uživatel)';
+      setVisible(hoursField, false);
+      setVisible(reasonField, false);
+      setVisible(wifiField, true);
+      adminActionForm.wifiName.focus();
+      return;
+    }
+  };
+
+  const closeAdminActionModal = () => {
+    if (!adminActionModal) return;
+    adminActionModal.classList.remove('is-open');
+    adminActionModal.setAttribute('aria-hidden', 'true');
+  };
+
+  if (adminActionModal) {
+    adminModalCloseButtons.forEach((btn) => btn.addEventListener('click', closeAdminActionModal));
+  }
+
+  // =========================================
+  // účet · taby (nahrát / fotit / text)
+  // =========================================
+  const mediaTabButtons = document.querySelectorAll('.tab-btn[data-tab]');
+  const mediaForms = document.querySelectorAll('.media-form[data-form-tab]');
+  let activeMediaTab = 'upload';
+  const collectAccountTextStyle = (formData) => sanitizeTextStyle({
+    preset: mediaTextForm?.dataset.textPreset || TEXT_STYLE_DEFAULTS.preset,
+    fontFamily: formData.get('fontFamily'),
+    fontSize: formData.get('fontSize'),
+    textColor: formData.get('textColor'),
+    backgroundColor: formData.get('backgroundColor'),
+    textAlign: formData.get('textAlign'),
+    borderStyle: formData.get('borderStyle'),
+    bold: formData.get('bold') === 'on',
+    italic: formData.get('italic') === 'on',
+    shadow: formData.get('shadow') === 'on'
+  });
+
+  const updateAccountTextPreview = () => {
+    if (!mediaTextForm || !accountTextPreview) return;
+    const fd = new FormData(mediaTextForm);
+    const style = collectAccountTextStyle(fd);
+    const title = String(fd.get('title') || 'Náhled příspěvku').trim() || 'Náhled příspěvku';
+    const text = String(fd.get('text') || 'Text se zobrazí tady.').trim() || 'Text se zobrazí tady.';
+    accountTextPreview.dataset.preset = style.preset;
+    accountTextPreview.setAttribute('style', textStyleToCss(style));
+    accountTextPreview.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${textToHtml(text)}</span>`;
+  };
+
+  const setActiveMediaTab = (tab) => {
+    activeMediaTab = tab;
+    mediaTabButtons.forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+    });
+    mediaForms.forEach((form) => {
+      form.hidden = form.getAttribute('data-form-tab') !== tab;
+    });
+
+    // Kamera spustěme jen v tab "camera" nebo "video"
+    if (tab === 'camera' || tab === 'video') {
+      startAccountCamera().catch(() => {});
+    } else {
+      stopAccountCamera();
+    }
+    if (tab === 'text') updateAccountTextPreview();
+  };
+  if (mediaTabButtons?.length) {
+    mediaTabButtons.forEach((btn) => {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+      btn.title = '';
+      btn.addEventListener('click', () => setActiveMediaTab(btn.getAttribute('data-tab') || 'upload'));
+    });
+  }
+
+  // =========================================
+  // Foto/Video · kamera (account)
+  // =========================================
+  let accountCameraStream = null;
+  let accountMediaRecorder = null;
+  let accountRecordChunks = [];
+  let accountRecordTimer = null;
+  let accountRecordMode = ''; // 'video' | 'short'
+
+  const setAccountCameraStatus = (text) => {
+    if (accountCameraStatus) accountCameraStatus.textContent = String(text || '');
+  };
+
+  const setAccountVideoStatus = (text) => {
+    if (accountVideoStatus) accountVideoStatus.textContent = String(text || '');
+  };
+
+  const startAccountCamera = async () => {
+    const previewEl = activeMediaTab === 'video' ? accountVideoPreview : accountCameraVideo;
+    if (!previewEl) return;
+    if (accountCameraStream) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setAccountCameraStatus('Prohlížeč nepodporuje kameru.');
+      setAccountVideoStatus('Prohlížeč nepodporuje kameru.');
+      return;
+    }
+    setAccountCameraStatus('Spouštím kameruž');
+    setAccountVideoStatus('Spouštím kameruž');
+    try {
+      try {
+        accountCameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } },
+          audio: { echoCancellation: true, noiseSuppression: true }
+        });
+      } catch {
+        accountCameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } },
+          audio: false
+        });
+      }
+      if (accountCameraVideo) accountCameraVideo.srcObject = accountCameraStream;
+      if (accountVideoPreview) accountVideoPreview.srcObject = accountCameraStream;
+      await previewEl.play().catch(() => {});
+      setAccountCameraStatus('');
+      setAccountVideoStatus('');
+    } catch (err) {
+      setAccountCameraStatus('Nepodařilo se spustit kameru (zkontrolujte oprávnění).');
+      setAccountVideoStatus('Nepodařilo se spustit kameru (zkontrolujte oprávnění).');
+      accountCameraStream = null;
+    }
+  };
+
+  const stopAccountCamera = () => {
+    if (accountRecordTimer) {
+      window.clearTimeout(accountRecordTimer);
+      accountRecordTimer = null;
+    }
+    if (accountMediaRecorder && accountMediaRecorder.state !== 'inactive') {
+      try { accountMediaRecorder.stop(); } catch {}
+    }
+    accountMediaRecorder = null;
+    accountRecordChunks = [];
+    accountRecordMode = '';
+    if (accountCameraStop) accountCameraStop.disabled = true;
+    if (accountVideoStop) accountVideoStop.disabled = true;
+
+    if (accountCameraStream) {
+      accountCameraStream.getTracks().forEach((t) => t.stop());
+      accountCameraStream = null;
+    }
+    if (accountCameraVideo) accountCameraVideo.srcObject = null;
+    if (accountVideoPreview) accountVideoPreview.srcObject = null;
+    setAccountCameraStatus('');
+    setAccountVideoStatus('');
+  };
+
+  // a· po inicializaci kamery helper· (jinak by setActiveMediaTab volal stopAccountCamera v TDZ)
+  if (mediaTabButtons?.length) {
+    setActiveMediaTab('upload');
+  }
+
+  const setUploadFile = (file, kind = '') => {
+    if (!mediaFileInput) return;
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    mediaFileInput.files = dt.files;
+    if (kind && mediaVideoKind) {
+      mediaVideoKind.value = kind;
+    }
+  };
+
+  const ensureUploadTabWithFile = (file, kind = '') => {
+    setUploadFile(file, kind);
+    // Přenést title/visibility z aktivní záložky (kamera/video) do upload formuláře.
+    try {
+      const uploadTitle = mediaForm?.querySelector('input[name="title"]');
+      const uploadVisibility = mediaForm?.querySelector('select[name="visibility"]');
+      const sourceForm = activeMediaTab === 'video' ? mediaVideoForm : mediaCameraForm;
+      const sourceTitle = sourceForm?.querySelector('input[name="title"]');
+      const sourceVisibility = sourceForm?.querySelector('select[name="visibility"]');
+      if (uploadTitle && sourceTitle && sourceTitle.value) uploadTitle.value = sourceTitle.value;
+      if (uploadVisibility && sourceVisibility && sourceVisibility.value) uploadVisibility.value = sourceVisibility.value;
+    } catch {}
+    setActiveMediaTab('upload');
+  };
+
+  const dataUrlFromBlob = (blob) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.readAsDataURL(blob);
+  });
+
+  const snapPhotoToUpload = async () => {
+    if (!accountCameraVideo || !accountCameraCanvas) return;
+    await startAccountCamera().catch(() => {});
+    if (!accountCameraStream) return;
+
+    const w = accountCameraVideo.videoWidth || 960;
+    const h = accountCameraVideo.videoHeight || 540;
+    accountCameraCanvas.width = w;
+    accountCameraCanvas.height = h;
+    const ctx = accountCameraCanvas.getContext('2d');
+    ctx.drawImage(accountCameraVideo, 0, 0, w, h);
+    setAccountCameraStatus('Zpracovávám fotku...');
+    const blob = await new Promise((resolve) => accountCameraCanvas.toBlob(resolve, 'image/jpeg', 0.92));
+    if (!blob) {
+      setAccountCameraStatus('Nepodařilo se vytvořit fotku.');
+      return;
+    }
+    const file = new File([blob], `selfie-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    ensureUploadTabWithFile(file);
+    stopAccountCamera();
+    setAccountCameraStatus('');
+  };
+
+  const startRecordingToUpload = async (mode) => {
+    // mode: 'video' (90s) | 'short' (30s)
+    await startAccountCamera().catch(() => {});
+    if (!accountCameraStream) return;
+    if (!window.MediaRecorder) {
+      setAccountCameraStatus('Prohlížeč nepodporuje nahrávání videa (MediaRecorder).');
+      return;
+    }
+    if (accountMediaRecorder && accountMediaRecorder.state !== 'inactive') return;
+
+    accountRecordMode = mode;
+    accountRecordChunks = [];
+    setAccountCameraStatus(mode === 'short' ? 'Nahrávám short (max 0:30)' : 'Nahrávám video... (max 1:30)');
+    if (accountCameraStop) accountCameraStop.disabled = false;
+
+    // Preferujeme WebM, fallback na default.
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+      ? 'video/webm;codecs=vp8,opus'
+      : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');
+    accountMediaRecorder = new MediaRecorder(accountCameraStream, mime ? {
+      mimeType: mime,
+      videoBitsPerSecond: mode === 'short' ? 2_800_000 : 2_400_000,
+      audioBitsPerSecond: 128_000
+    } : undefined);
+    accountMediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) accountRecordChunks.push(e.data);
+    };
+    accountMediaRecorder.onstop = async () => {
+      const chunks = accountRecordChunks.slice();
+      accountRecordChunks = [];
+      if (!chunks.length) {
+        setAccountCameraStatus('Video je prázdné (zkuste to znovu).');
+        return;
+      }
+      const blob = new Blob(chunks, { type: chunks[0].type || 'video/webm' });
+      const file = new File([blob], `${accountRecordMode}-${Date.now()}.webm`, { type: blob.type || 'video/webm' });
+      ensureUploadTabWithFile(file, accountRecordMode || 'video');
+      stopAccountCamera();
+    };
+
+    accountMediaRecorder.start(500);
+    const limitMs = mode === 'short' ? 30_000 : 90_000;
+    if (accountRecordTimer) window.clearTimeout(accountRecordTimer);
+    accountRecordTimer = window.setTimeout(() => {
+      if (accountMediaRecorder && accountMediaRecorder.state !== 'inactive') {
+        try { accountMediaRecorder.stop(); } catch {}
+      }
+    }, limitMs);
+  };
+
+  const stopRecording = () => {
+    if (accountRecordTimer) {
+      window.clearTimeout(accountRecordTimer);
+      accountRecordTimer = null;
+    }
+    if (accountMediaRecorder && accountMediaRecorder.state !== 'inactive') {
+      try { accountMediaRecorder.stop(); } catch {}
+    }
+  };
+
+
+  const readAsDataUrl = (file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+
+  const renderMediaList = async (userId) => {
+    if (!mediaList) return;
+    try {
+      const items = await fetchMediaItems(userId);
+      mediaList.innerHTML = items.length ? items.map((item) => {
+        const isVideo = item.type === 'video' || item.type === 'short';
+        const preview = item.type === 'text'
+          ? renderStyledTextPost(item)
+          : isVideo
+            ? `<video class="video-player${item.type === 'short' ? ' video-player--short' : ''}" controls playsinline preload="metadata" disablepictureinpicture controlsList="nodownload noremoteplayback" src="${item.url}"></video>`
+            : `<img src="${item.url}" alt="${escapeHtml(item.title)}" />`;
+
+        return `
+          <article class="media-item">
+            <div class="media-preview">${preview}</div>
+            <div class="media-meta">
+              <strong>${escapeHtml(item.title)}</strong>
+              ${item.description && item.type !== 'text' ? `<p class="media-description">${escapeHtml(item.description)}</p>` : ''}
+              <span>${new Date(item.createdAt).toLocaleString()}</span>
+            </div>
+          </article>
+        `;
+      }).join('') : '<p class="media-empty">Zatím žádné položky. Přidejte foto nebo video.</p>';
+    } catch (err) {
+      mediaList.innerHTML = '<p class="media-empty">Nepodařilo se načíst obsah.</p>';
+    }
+  };
+
+  const renderAdminUsers = (users, currentUserId) => {
+    if (!adminUserList) return;
+    if (!users.length) {
+      adminUserList.innerHTML = '<p class="media-empty">Žádní uživatelé k zobrazení.</p>';
+      return;
+    }
+
+    adminUserList.innerHTML = users.map((user) => {
+      const stateText = user.blocked ? 'Zablokován' : 'Aktivní';
+      const roleLabel = user.role === 'admin' ? 'Administrátor' : user.role === 'creator' ? 'Tvůrce' : 'Uživatel';
+      const nextRole = user.role === 'admin' ? 'user' : 'creator';
+      const roleButtonLabel = user.role === 'admin' ? 'Odebrat admin' : user.role === 'creator' ? 'Nastavit uživatele' : 'Povolit tvůrce';
+      const lastLogin = user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Nikdy';
+      const wifiNote = user.wifiNote ? user.wifiNote : 'žádné';
+      const banUntil = user.blockedUntil ? ` (do ${new Date(user.blockedUntil).toLocaleString()})` : '';
+      const banHistoryHtml = Array.isArray(user.banHistory) && user.banHistory.length ? user.banHistory.slice(0, 3).map((entry) => `
+            <div class="ban-entry">
+              <span>${new Date(entry.startAt).toLocaleString()} · ${new Date(entry.endAt).toLocaleString()}</span>
+              <span>${entry.reason}</span>
+            </div>
+          `).join('') : '';
+
+      return `
+        <article class="admin-user">
+          <div class="admin-user-info">
+            <strong>${user.contact}</strong>
+            <span>${user.firstName || ''} ${user.lastName || ''}</span>
+            <div class="admin-user-badges">
+              <span class="badge ${user.role}">${roleLabel}</span>
+              <span class="badge ${user.blocked ? 'blocked' : 'active'}">${stateText}${banUntil}</span>
+            </div>
+            <div class="admin-user-meta">
+              <span>Vytvořeno: ${new Date(user.createdAt).toLocaleDateString()}</span>
+              <span>Poslední login: ${lastLogin}</span>
+              <span>IP: ${user.lastLoginIp || '---'}</span>
+              <span>Zařízení: ${user.lastLoginDevice || '---'}</span>
+              <span>WiFi poznámka: ${wifiNote}</span>
+              ${user.blockedReason ? `<span>Důvod blokace: ${user.blockedReason}</span>` : ''}
+            </div>
+            ${banHistoryHtml ? `<div class="admin-ban-history"><strong>Poslední bany</strong>${banHistoryHtml}</div>` : ''}
+          </div>
+          <div class="admin-user-actions">
+            ${user.blocked ? '<button class="btn btn-secondary" type="button" data-action="unblock" data-id="' + user.id + '">Zružit ban</button>' : `
+              <button class="btn btn-primary" type="button" data-action="ban-24" data-id="${user.id}">Ban 24h</button>
+              <button class="btn btn-secondary" type="button" data-action="ban-7" data-id="${user.id}">Ban 7d</button>
+              <button class="btn btn-tertiary" type="button" data-action="ban-custom" data-id="${user.id}">Vlastní ban</button>
+            `}
+            <button class="btn btn-secondary" type="button" data-action="wifi-user" data-id="${user.id}">WiFi poznámka</button>
+          </div>
+          <div class="admin-user-buttons">
+            <button class="btn btn-secondary" type="button" data-action="change-role" data-id="${user.id}" data-role="${nextRole}">${roleButtonLabel}</button>
+            <button class="btn btn-tertiary" type="button" data-action="delete-user" data-id="${user.id}" ${user.id === currentUserId ? 'disabled' : ''}>Smazat uživatele</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  };
+
+  const loadAdminList = async (currentUserId) => {
+    if (!adminPanel) return;
+    try {
+      const users = await fetchAdminUsers();
+      const blockedCount = users.filter((user) => user.blocked).length;
+      const creatorCount = users.filter((user) => user.role === 'creator').length;
+
+      adminUserCount.textContent = users.length;
+      adminBlockedCount.textContent = blockedCount;
+      adminCreatorCount.textContent = creatorCount;
+      renderAdminUsers(users, currentUserId);
+    } catch (err) {
+      console.error('Admin users load failed:', err);
+      if (adminUserCount) adminUserCount.textContent = '·';
+      if (adminBlockedCount) adminBlockedCount.textContent = '·';
+      if (adminCreatorCount) adminCreatorCount.textContent = '·';
+      if (adminUserList) adminUserList.innerHTML = `<p class="media-empty">Nepodařilo se načíst seznam uživatelů. ${err?.message || ''}</p>`;
+      if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se načíst seznam uživatelů.';
+    }
+  };
+
+  const bindAdminActions = () => {
+    if (!adminUserList || adminActionsBound) return;
+    adminActionsBound = true;
+
+    adminUserList.addEventListener('click', async (e) => {
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
+      if (button.disabled) return;
+
+      const action = button.dataset.action;
+      const userId = button.dataset.id;
+
+      try {
+        if (statusEl) statusEl.textContent = 'Provádím akci...';
+
+        if (action === 'ban-24') {
+          await banAdminUser(userId, 24, 'Porušení pravidel');
+          if (statusEl) statusEl.textContent = 'Ban 24h uložen.';
+          await loadAdminList(lastAdminViewerId);
+          return;
+        }
+
+        if (action === 'ban-7') {
+          await banAdminUser(userId, 168, 'Porušení pravidel');
+          if (statusEl) statusEl.textContent = 'Ban 7 dnů uložen.';
+          await loadAdminList(lastAdminViewerId);
+          return;
+        }
+
+        if (action === 'ban-custom') {
+          openAdminActionModal('ban-custom', userId, { hours: 48, reason: 'Porušení pravidel' });
+          if (statusEl) statusEl.textContent = '';
+          return;
+        }
+
+        if (action === 'unblock') {
+          await unblockAdminUser(userId);
+          if (statusEl) statusEl.textContent = 'Ban zrušen.';
+          await loadAdminList(lastAdminViewerId);
+          return;
+        }
+
+        if (action === 'wifi-user') {
+          openAdminActionModal('wifi-user', userId, { wifiName: '' });
+          if (statusEl) statusEl.textContent = '';
+          return;
+        }
+
+        if (action === 'change-role') {
+          const role = button.dataset.role;
+          await changeUserRole(userId, role);
+          if (statusEl) statusEl.textContent = 'Role změněna.';
+          await loadAdminList(lastAdminViewerId);
+          return;
+        }
+
+        if (action === 'delete-user') {
+          const confirmed = window.confirm('Opravdu chcete tohoto uživatele smazat? Tato akce je nevratná.');
+          if (!confirmed) return;
+          await deleteAdminUser(userId);
+          if (statusEl) statusEl.textContent = 'Uživatel smazán.';
+          await loadAdminList(lastAdminViewerId);
+        }
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err.message;
+      }
+    });
+
+    adminActionForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const mode = adminActionForm.mode.value;
+      const userId = adminActionForm.userId.value;
+
+      try {
+        if (mode === 'ban-custom') {
+          const hours = Number(adminActionForm.hours.value);
+          const reason = String(adminActionForm.reason.value || '').trim() || 'Porušení pravidel';
+          if (!Number.isFinite(hours) || hours <= 0) {
+            if (statusEl) statusEl.textContent = 'Zadejte prosím platný počet hodin.';
+            return;
+          }
+          await banAdminUser(userId, hours, reason);
+          if (statusEl) statusEl.textContent = 'Vlastní ban uložen.';
+        }
+
+        if (mode === 'wifi-user') {
+          const wifiName = String(adminActionForm.wifiName.value || '').trim();
+          await annotateUserWifi(userId, wifiName);
+          if (statusEl) statusEl.textContent = 'WiFi poznámka uložena.';
+        }
+
+        closeAdminActionModal();
+        await loadAdminList(lastAdminViewerId);
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err.message;
+      }
+    });
+  };
+
+  const renderAdminHealth = (health) => {
+    if (!adminHealthList) return;
+    const features = health?.features || {};
+    const storage = health?.storage || {};
+    const counts = health?.counts || {};
+    const isOnlineHost = window.location.hostname.endsWith('.onrender.com');
+    const checks = [
+      {
+        label: 'Online deploy',
+        ok: Boolean(features.onlineDeploy || isOnlineHost),
+        detail: isOnlineHost ? 'Běží na veřejné Render URL.' : 'Lokální režim, po deployi se přepne na Render.'
+      },
+      {
+        label: 'Funkční backend',
+        ok: Boolean(health?.ok && features.backend),
+        detail: `Server odpověděl: ${health?.checkedAt ? new Date(health.checkedAt).toLocaleString() : 'nyní'}`
+      },
+      {
+        label: 'Veřejná dostupnost',
+        ok: Boolean(features.publicAccess && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')),
+        detail: window.location.origin
+      },
+      {
+        label: 'Reálné API',
+        ok: Boolean(features.realApi),
+        detail: `API používá stejný origin jako stránka: ${getApiBase()}`
+      },
+      {
+        label: 'Registrace',
+        ok: Boolean(features.registration && storage.usersFile),
+        detail: `Soubor uživatelů dostupný, účtů: ${counts.users ?? 0}`
+      },
+      {
+        label: 'Ukládání postů',
+        ok: Boolean(features.postStorage && storage.mediaFile && storage.writable),
+        detail: `Média: ${counts.media ?? 0}, komentáře: ${counts.comments ?? 0}`
+      }
+    ];
+
+    adminHealthList.innerHTML = checks.map((check) => `
+      <div class="admin-health-item ${check.ok ? 'is-ok' : 'is-warning'}">
+        <strong>${check.ok ? '✅' : '⚠️'} ${escapeHtml(check.label)}</strong>
+        <span>${escapeHtml(check.detail)}</span>
+      </div>
+    `).join('');
+  };
+
+  const loadAdminHealth = async () => {
+    if (!adminHealthList) return;
+    adminHealthList.innerHTML = '<div class="admin-health-item is-pending"><strong>Ověřuji</strong><span>Kontroluji backend a úložiště...</span></div>';
+    try {
+      const health = await fetchHealth();
+      renderAdminHealth(health);
+    } catch (err) {
+      adminHealthList.innerHTML = `
+        <div class="admin-health-item is-warning">
+          <strong>⚠️ Backend</strong>
+          <span>${escapeHtml(err?.message || 'Nepodařilo se ověřit stav serveru.')}</span>
+        </div>
+      `;
+    }
+  };
+
+  const renderAdminMedia = (items, users = []) => {
+    if (!adminMediaList) return;
+    if (!items.length) {
+      adminMediaList.innerHTML = '<p class="media-empty">Žádná média k zobrazení.</p>';
+      return;
+    }
+
+    const userMap = new Map((users || []).map((user) => [String(user.id), user]));
+    const groups = new Map();
+    for (const item of items.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))) {
+      const key = String(item.ownerId || 'unknown');
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(item);
+    }
+
+    adminMediaList.innerHTML = Array.from(groups.entries()).map(([ownerId, ownerItems]) => {
+      const owner = userMap.get(ownerId);
+      const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.contact || owner.id : `Neznámý uživatel (${ownerId})`;
+      const ownerRole = owner?.role === 'admin' ? 'Administrátor' : owner?.role === 'creator' ? 'Tvůrce' : 'Uživatel';
+      return `
+        <section class="admin-media-user-group">
+          <div class="admin-media-user-head">
+            <div>
+              <strong>${escapeHtml(ownerName)}</strong>
+              <span>${escapeHtml(ownerRole)} · ${ownerItems.length} příspěvků</span>
+            </div>
+            <span class="badge">${escapeHtml(ownerId)}</span>
+          </div>
+          <div class="admin-media-user-posts">
+            ${ownerItems.map((item) => {
+              const wifiNote = item.wifiNote ? item.wifiNote : 'žádné';
+              const comments = Array.isArray(item.comments) ? item.comments : [];
+              const isVideo = item.type === 'video' || item.type === 'short';
+              return `
+                <article class="admin-media-item">
+                  <div class="admin-media-preview">
+                    ${isVideo
+                      ? `<video class="video-player${item.type === 'short' ? ' video-player--short' : ''}" controls playsinline preload="metadata" disablepictureinpicture controlsList="nodownload noremoteplayback" src="${escapeHtml(item.url)}"></video>`
+                      : item.type === 'text'
+                        ? `<div class="admin-text-preview">${escapeHtml(item.description || item.title || 'Textový příspěvek')}</div>`
+                        : `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.title || 'Médium')}" />`}
+                    <div class="admin-media-meta">
+                      <strong>${escapeHtml(item.title || 'Bez názvu')}</strong>
+                      ${item.description && item.type !== 'text' ? `<span>${escapeHtml(item.description)}</span>` : ''}
+                      <span>Vytvořeno: ${new Date(item.createdAt).toLocaleString()}</span>
+                      <span>IP: ${escapeHtml(item.ipAddress || '---')}</span>
+                      <span>Zařízení: ${escapeHtml(item.deviceInfo || '---')}</span>
+                      <span>WiFi poznámka: ${escapeHtml(wifiNote)}</span>
+                      <span>Komentáře: ${comments.length}</span>
+                    </div>
+                  </div>
+                  ${comments.length ? `
+                    <div class="admin-comments">
+                      <strong>Komentáře</strong>
+                      ${comments.map((comment) => `
+                        <div class="admin-comment-row">
+                          <div>
+                            <span>${escapeHtml(comment.userName || comment.userId || 'Uživatel')}</span>
+                            <p>${escapeHtml(comment.text || '')}</p>
+                            <small>${comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ''}</small>
+                          </div>
+                          <button class="btn btn-tertiary" type="button" data-action="delete-comment" data-media-id="${escapeHtml(item.id)}" data-comment-id="${escapeHtml(comment.id)}">Smazat komentář</button>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : '<div class="admin-comments admin-comments--empty">Bez komentářů.</div>'}
+                  <div class="admin-media-actions">
+                    <button class="btn btn-secondary" type="button" data-action="wifi-media" data-id="${escapeHtml(item.id)}">WiFi poznámka</button>
+                    <button class="btn btn-tertiary" type="button" data-action="delete-media" data-id="${escapeHtml(item.id)}">Smazat příspěvek</button>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      `;
+    }).join('');
+
+    adminMediaList.onclick = async (e) => {
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+      try {
+        if (action === 'wifi-media') {
+          const mediaId = button.dataset.id;
+          const wifiNote = window.prompt('Zadejte WiFi poznámku pro tento příspěvek:');
+          if (wifiNote === null) return;
+          await annotateMediaWifi(mediaId, wifiNote.trim());
+          await loadAdminMedia();
+          return;
+        }
+
+        if (action === 'delete-media') {
+          const mediaId = button.dataset.id;
+          const confirmed = window.confirm('Opravdu chcete smazat tento příspěvek?');
+          if (!confirmed) return;
+          await deleteAdminMedia(mediaId);
+          await loadAdminMedia();
+          return;
+        }
+
+        if (action === 'delete-comment') {
+          const mediaId = button.dataset.mediaId;
+          const commentId = button.dataset.commentId;
+          const confirmed = window.confirm('Opravdu chcete smazat tento komentář?');
+          if (!confirmed) return;
+          await deleteAdminComment(mediaId, commentId);
+          await loadAdminMedia();
+        }
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Admin akce se nepodařila.';
+      }
+    };
+  };
+
+  const loadAdminMedia = async () => {
+    if (!adminPanel) return;
+    try {
+      const [items, users] = await Promise.all([fetchAdminMedia(), fetchAdminUsers()]);
+      adminMediaCount.textContent = items.length;
+      renderAdminMedia(items, users);
+    } catch (err) {
+      console.error('Admin media load failed:', err);
+      if (adminMediaCount) adminMediaCount.textContent = '·';
+      if (adminMediaList) adminMediaList.innerHTML = `<p class="media-empty">Nepodařilo se načíst média. ${err?.message || ''}</p>`;
+      if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se načíst média.';
+    }
+  };
+
+  if (refreshAdminList) {
+    refreshAdminList.addEventListener('click', async () => {
+      const currentUserId = getCurrentUserId();
+      await loadAdminList(currentUserId);
+    });
+  }
+
+  if (refreshAdminMedia) {
+    refreshAdminMedia.addEventListener('click', async () => {
+      await loadAdminMedia();
+    });
+  }
+
+  if (adminHealthRefresh) {
+    adminHealthRefresh.addEventListener('click', async () => {
+      await loadAdminHealth();
+    });
+  }
+
+  if (adminToggleButton) {
+    const closeAdminPanel = () => {
+      if (!adminPanel) return;
+      adminPanel.classList.remove('open');
+      adminToggleButton.textContent = '⚙️';
+      // nech·me dob·hnout animaci "zasunutě" a pak panel skryjeme
+      window.setTimeout(() => {
+        if (adminPanel && !adminPanel.classList.contains('open')) {
+          adminPanel.hidden = true;
+        }
+      }, 300);
+    };
+
+    const openAdminPanel = async () => {
+      if (!adminPanel) return;
+      adminPanel.hidden = false;
+      adminToggleButton.textContent = '⚙️';
+      // Přidáme class až v dalším ticku, aby se spustila transition animace.
+      requestAnimationFrame(() => adminPanel.classList.add('open'));
+      await loadAdminHealth();
+      await loadAdminList(getCurrentUserId());
+      await loadAdminMedia();
+    };
+
+    adminToggleButton.addEventListener('click', async () => {
+      if (!adminPanel) return;
+      const isOpen = adminPanel.classList.contains('open');
+      if (isOpen) {
+        closeAdminPanel();
+      } else {
+        await openAdminPanel();
+      }
+    });
+
+    // K·žek uvnitě panelu (rychlé zavžen·)
+    if (adminCloseButton) {
+      adminCloseButton.addEventListener('click', closeAdminPanel);
+    }
+
+    // Esc zavže i administr·torsk· panel (na str·nce ··tu)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAdminPanel();
+    });
+  }
+
+  const renderUserProfile = (user) => {
+    console.log('Rendering profile:', user);
+    if (profileName) {
+      profileName.textContent = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.contact;
+    }
+
+    if (profileRole) {
+      const roleLabels = {
+        admin: 'Administrátor',
+        creator: 'Tvůrce',
+        user: 'Uživatel'
+      };
+      profileRole.textContent = roleLabels[user.role] || 'Uživatel';
+    }
+
+    if (profileBio) {
+      profileBio.textContent = user.bio || 'Napište něco o sobě, co ukáže váš styl a zkušenosti.';
+    }
+
+    // Na··st a zobrazit po·ty followers/following
+    (async () => {
+      try {
+        const counts = await api(`/api/follow/counts/${encodeURIComponent(user.id)}`);
+        if (profileFollowing) profileFollowing.textContent = counts?.followingCount || 0;
+        if (profileFollowers) profileFollowers.textContent = counts?.followersCount || 0;
+      } catch (err) {
+        console.error('Chyba při načítání po·tě:', err);
+        if (profileFollowing) profileFollowing.textContent = 0;
+        if (profileFollowers) profileFollowers.textContent = 0;
+      }
+    })();
+
+    // Profilová avatar je teď klikací label (kvůli uploadu), takže stylujeme jeho pozadí tam.
+    if (profileAvatarLabel) {
+      profileAvatarLabel.style.backgroundImage = user.profilePhoto
+        ? `url(${user.profilePhoto})`
+        : 'linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,0))';
+    } else if (profileAvatar) {
+      profileAvatar.style.backgroundImage = user.profilePhoto
+        ? `url(${user.profilePhoto})`
+        : 'linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,0))';
+    }
+
+    if (profileCoverVideo && profileCoverPlaceholder) {
+      if (user.coverVideo) {
+        profileCoverVideo.src = user.coverVideo;
+        profileCoverVideo.load();
+        profileCoverVideo.style.display = 'block';
+        profileCoverPlaceholder.style.display = 'none';
+        profileCoverVideo.onloadeddata = () => {
+          profileCoverVideo.play().catch(() => {});
+        };
+      } else {
+        profileCoverVideo.style.display = 'none';
+        profileCoverPlaceholder.style.display = 'flex';
+      }
+    }
+
+    if (profileBioField) {
+      profileBioField.value = user.bio || '';
+    }
+  };
+
+  const initAccountPage = async () => {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    let user;
+    try {
+      user = await fetchUser(currentUserId);
+    } catch (err) {
+      clearCurrentUser();
+      window.location.href = 'index.html';
+      return;
+    }
+
+    if (user.blocked) {
+      clearCurrentUser();
+      window.location.href = 'index.html';
+      return;
+    }
+
+    console.log('User role:', user.role);
+
+    if (accountUserName) {
+      accountUserName.textContent = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.contact;
+    }
+
+    renderUserProfile(user);
+
+    const formatNotifLabel = (n) => {
+      const type = String(n?.type || '').toLowerCase();
+      const labels = {
+        follow_request: 'Žádost o sledování',
+        follow_accepted: 'Sledování schváleno',
+        follow_rejected: 'Sledování zamítnuto'
+      };
+      return labels[type] || 'Upozornění';
+    };
+
+    const updateSettingsButtonBadge = async () => {
+      if (!accountSettingsButton) return;
+      const base = accountSettingsButton.getAttribute('data-base-text') || accountSettingsButton.textContent || 'Nastavení';
+      accountSettingsButton.setAttribute('data-base-text', base);
+      try {
+        const list = await fetchNotifications();
+        const unread = (Array.isArray(list) ? list : []).filter((n) => !n.readAt).length;
+        accountSettingsButton.textContent = unread > 0 ? `${base} (${unread})` : base;
+      } catch {
+        accountSettingsButton.textContent = base;
+      }
+    };
+
+    const renderNotifications = async () => {
+      if (!notificationsList) return;
+      try {
+        const list = await fetchNotifications();
+        const items = Array.isArray(list) ? list : [];
+        if (!items.length) {
+          notificationsList.innerHTML = `<div class="feed-empty">Zatím žádné notifikace.</div>`;
+          await updateSettingsButtonBadge();
+          return;
+        }
+        notificationsList.innerHTML = items.slice(0, 15).map((n) => {
+          const isRead = Boolean(n.readAt);
+          const title = formatNotifLabel(n);
+          const when = n.createdAt ? new Date(n.createdAt).toLocaleString() : '';
+          return `
+            <div class="user-row" style="margin:0; ${isRead ? 'opacity:.7;' : ''}" data-notif-id="${escapeHtml(n.id)}">
+              <div class="user-row__left">
+                <div class="user-row__avatar" style="background:linear-gradient(135deg, rgba(109,94,247,.35), rgba(34,211,238,.15));"></div>
+                <div class="user-row__name">
+                  <strong>${escapeHtml(title)}</strong>
+                  <span>${escapeHtml(n.message || '')}${when ? ` · ${escapeHtml(when)}` : ''}</span>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                ${isRead ? '' : `<button class="reaction-btn" data-action="mark-notif-read" data-notif-id="${escapeHtml(n.id)}">Přečteno</button>`}
+                <button class="reaction-btn" data-action="delete-notif" data-notif-id="${escapeHtml(n.id)}">Smazat</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        await updateSettingsButtonBadge();
+      } catch (err) {
+        notificationsList.innerHTML = `<div class="feed-empty">Notifikace se nepodařilo načíst. ${escapeHtml(err?.message || '')}</div>`;
+      }
+    };
+
+    if (adminPanel) {
+      adminPanel.classList.remove('open');
+      adminPanel.hidden = true;
+      if (user.role === 'admin') {
+        if (adminToggleButton) {
+          adminToggleButton.hidden = false;
+          adminToggleButton.textContent = '⚙️';
+        }
+        lastAdminViewerId = user.id;
+        bindAdminActions();
+      } else {
+        if (adminToggleButton) {
+          adminToggleButton.hidden = true;
+        }
+      }
+    }
+
+    if (logoutButton) {
+      logoutButton.addEventListener('click', () => {
+        clearCurrentUser();
+        window.location.href = 'index.html';
+      });
+    }
+
+    // Tabs v nastaven·
+    setActiveSettingsSection('security');
+    settingsTabSecurity?.addEventListener('click', () => setActiveSettingsSection('security'));
+    settingsTabPrivacy?.addEventListener('click', () => setActiveSettingsSection('privacy'));
+    settingsTabSocial?.addEventListener('click', () => setActiveSettingsSection('social'));
+    settingsTabBlocks?.addEventListener('click', () => setActiveSettingsSection('blocks'));
+    settingsTabExport?.addEventListener('click', () => setActiveSettingsSection('export'));
+
+    // Načíst nastavení a seznamy vždy při otevření modalu.
+    const loadSettings = async () => {
+      try {
+        if (settingsFirstName) settingsFirstName.value = user.firstName || '';
+        if (settingsLastName) settingsLastName.value = user.lastName || '';
+        if (settingsContact) settingsContact.value = user.contact || '';
+        const data = await fetchUserSettings(user.id);
+        const settings = data?.settings || {};
+        const isPrivate = settings?.privateAccount ?? true;
+        const notifications = settings?.notifications || {};
+
+        if (privateAccountToggle) privateAccountToggle.checked = Boolean(isPrivate);
+        if (notifFollowRequestsToggle) notifFollowRequestsToggle.checked = notifications?.followRequests ?? true;
+        if (notifFollowAcceptedToggle) notifFollowAcceptedToggle.checked = notifications?.followAccepted ?? true;
+        if (notifFollowRejectedToggle) notifFollowRejectedToggle.checked = notifications?.followRejected ?? true;
+      } catch {}
+      await renderSettingsLists(user);
+    };
+    // hned po na·ten· ··tu (a· je p·ipraven·)
+    loadSettings().catch(() => {});
+    // hned po na·ten· ··tu
+    renderNotifications().catch(() => {});
+    updateSettingsButtonBadge().catch(() => {});
+
+    const closeAdminPanelIfOpen = () => {
+      if (!adminPanel || !adminToggleButton) return;
+      if (adminPanel.classList.contains('open') || adminPanel.hidden === false) {
+        adminPanel.classList.remove('open');
+        adminToggleButton.textContent = '⚙️';
+        // schováme panel a· po dob·hnutě animace (stejn· jako v closeAdminPanel)
+        window.setTimeout(() => {
+          if (adminPanel && !adminPanel.classList.contains('open')) {
+            adminPanel.hidden = true;
+          }
+        }, 300);
+      }
+    };
+
+    const openSettingsModalAndLoad = async () => {
+      // U admina může být otevřený panel, který by vizuálně překrýval nastavení.
+      closeAdminPanelIfOpen();
+      openSettingsModal();
+      await loadSettings().catch(() => {});
+    };
+
+    if (accountSettingsButton) {
+      accountSettingsButton.addEventListener('click', openSettingsModalAndLoad);
+    }
+    // account.html#settings => otev··t nastaven· rovnou
+    if (window.location.hash === '#settings') {
+      openSettingsModalAndLoad();
+    }
+
+    if (openFeedButton) {
+      openFeedButton.addEventListener('click', () => {
+        window.location.href = 'feed.html';
+      });
+    }
+
+    if (openFollowingButton) {
+      openFollowingButton.addEventListener('click', () => {
+        window.location.href = 'feed.html#following';
+      });
+    }
+
+    settingsPasswordForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(settingsPasswordForm);
+      const currentPassword = String(fd.get('currentPassword') || '');
+      const newPassword = String(fd.get('newPassword') || '');
+      try {
+        await changeUserPassword(user.id, { currentPassword, newPassword });
+        if (statusEl) statusEl.textContent = 'Heslo bylo změněno.';
+        settingsPasswordForm.reset();
+        closeSettingsModal();
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se změnit heslo.';
+      }
+    });
+
+    settingsIdentityForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(settingsIdentityForm);
+      try {
+        const updated = await updateUserIdentity(user.id, {
+          firstName: String(fd.get('firstName') || '').trim(),
+          lastName: String(fd.get('lastName') || '').trim(),
+          contact: String(fd.get('contact') || '').trim(),
+          currentPassword: String(fd.get('currentPassword') || '')
+        });
+        Object.assign(user, updated);
+        renderUserProfile(user);
+        if (settingsContact) settingsContact.value = updated.contact || '';
+        settingsIdentityForm.reset();
+        if (settingsFirstName) settingsFirstName.value = updated.firstName || '';
+        if (settingsLastName) settingsLastName.value = updated.lastName || '';
+        if (settingsContact) settingsContact.value = updated.contact || '';
+        if (statusEl) statusEl.textContent = 'Údaje účtu byly změněny.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se uložit údaje účtu.';
+      }
+    });
+
+    settingsDeleteAccountForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(settingsDeleteAccountForm);
+      const confirmed = window.confirm('Opravdu chcete trvale smazat účet? Tato akce nejde vrátit.');
+      if (!confirmed) return;
+      try {
+        await deleteOwnAccount(user.id, {
+          currentPassword: String(fd.get('currentPassword') || ''),
+          confirmText: String(fd.get('confirmText') || '')
+        });
+        clearCurrentUser();
+        window.location.href = 'index.html';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se smazat účet.';
+      }
+    });
+
+    settingsPrivacyForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const payload = {
+          privateAccount: Boolean(privateAccountToggle?.checked)
+        };
+        if (notifFollowRequestsToggle || notifFollowAcceptedToggle || notifFollowRejectedToggle) {
+          payload.notifications = {};
+          if (notifFollowRequestsToggle) payload.notifications.followRequests = Boolean(notifFollowRequestsToggle.checked);
+          if (notifFollowAcceptedToggle) payload.notifications.followAccepted = Boolean(notifFollowAcceptedToggle.checked);
+          if (notifFollowRejectedToggle) payload.notifications.followRejected = Boolean(notifFollowRejectedToggle.checked);
+        }
+        await updateUserSettings(user.id, payload);
+        if (statusEl) statusEl.textContent = 'Soukromí bylo uloženo.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se uložit soukromí.';
+      }
+    });
+
+    // Akce v seznamech nastaven· (delegace)
+    settingsSectionSocial?.addEventListener('click', async (e) => {
+      const openBtn = e.target.closest('[data-action="open-user"]');
+      if (openBtn) {
+        const id = openBtn.getAttribute('data-user-id');
+        if (id) window.location.href = `user.html?id=${encodeURIComponent(id)}`;
+        return;
+      }
+      const respondBtn = e.target.closest('[data-action="respond-request"]');
+      if (respondBtn) {
+        const requestId = respondBtn.getAttribute('data-request-id');
+        const response = respondBtn.getAttribute('data-response');
+        if (!requestId || !response) return;
+        try {
+          await respondFollowRequest(requestId, response);
+          await renderSettingsLists(user);
+          await renderNotifications().catch(() => {});
+          if (statusEl) statusEl.textContent = response === 'accept' ? 'Žádost schválena.' : 'Žádost zamítnuta.';
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se zpracovat Žádost.';
+        }
+        return;
+      }
+      const unfollowBtn = e.target.closest('[data-action="unfollow"]');
+      if (unfollowBtn) {
+        const id = unfollowBtn.getAttribute('data-user-id');
+        if (!id) return;
+        try {
+          await api('/api/follow/unfollow', { method: 'POST', body: { toUserId: id } });
+          await renderSettingsLists(user);
+          if (statusEl) statusEl.textContent = 'Sledování zrušeno.';
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se zružit sledování.';
+        }
+        return;
+      }
+      const removeFollowerBtn = e.target.closest('[data-action="remove-follower"]');
+      if (removeFollowerBtn) {
+        const id = removeFollowerBtn.getAttribute('data-user-id');
+        if (!id) return;
+        try {
+          await removeFollower(id);
+          await renderSettingsLists(user);
+          if (statusEl) statusEl.textContent = 'Sledující odebrán.';
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se odebrat sledujícího.';
+        }
+        return;
+      }
+      const cancelBtn = e.target.closest('[data-action="cancel-request"]');
+      if (cancelBtn) {
+        const id = cancelBtn.getAttribute('data-request-id');
+        if (!id) return;
+        try {
+          await cancelFollowRequest(id);
+          await renderSettingsLists(user);
+          if (statusEl) statusEl.textContent = 'Žádost zrušena.';
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se zružit Žádost.';
+        }
+      }
+    });
+
+    settingsBlockForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(settingsBlockForm);
+      const query = String(fd.get('name') || '').trim().toLowerCase();
+      if (!query) return;
+      try {
+        const users = await fetchUsersPublic();
+        const matches = (users || []).filter((u) => {
+          const name = `${u.firstName || ''} ${u.lastName || ''}`.trim().toLowerCase();
+          return name === query || name.includes(query);
+        }).filter((u) => String(u.id) !== String(user.id));
+        const exact = matches.find((u) => `${u.firstName || ''} ${u.lastName || ''}`.trim().toLowerCase() === query);
+        const target = exact || matches[0];
+        if (!target) {
+          if (statusEl) statusEl.textContent = 'Uživatel s tímto jménem nebyl nalezen.';
+          return;
+        }
+        if (matches.length > 1 && !exact) {
+          if (statusEl) statusEl.textContent = `Nalezeno více uživatelů, blokuji první shodu: ${target.firstName || ''} ${target.lastName || ''}.`;
+        }
+        await blockUser(target.id);
+        settingsBlockForm.reset();
+        await renderSettingsLists(user);
+        if (statusEl) statusEl.textContent = 'Uživatel zablokován.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se zablokovat uživatele.';
+      }
+    });
+
+    settingsSectionBlocks?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-action="unblock"]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-user-id');
+      if (!id) return;
+      try {
+        await unblockUser(id);
+        await renderSettingsLists(user);
+        if (statusEl) statusEl.textContent = 'Uživatel odblokován.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se odblokovat.';
+      }
+    });
+
+    exportMyData?.addEventListener('click', async () => {
+      try {
+        const [me, myPosts, following, followers, outgoing, settings, blocked] = await Promise.all([
+          fetchUser(user.id),
+          fetchMediaItems(user.id).catch(() => []),
+          fetchFollowing().catch(() => []),
+          fetchFollowers().catch(() => []),
+          fetchOutgoingFollowRequests().catch(() => []),
+          fetchUserSettings(user.id).catch(() => ({})),
+          fetchBlockedUsers().catch(() => [])
+        ]);
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          profile: me,
+          settings: settings?.settings || {},
+          blockedUsers: blocked,
+          posts: myPosts,
+          following,
+          followers,
+          outgoingRequests: outgoing
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `anuk-export-${user.id}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        if (statusEl) statusEl.textContent = 'Export byl stažen.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se exportovat data.';
+      }
+    });
+
+    // Notifikace · delegace + ozna·it vže přečtené
+    notificationsList?.addEventListener('click', async (e) => {
+      const deleteBtn = e.target.closest('[data-action="delete-notif"]');
+      if (deleteBtn) {
+        const id = deleteBtn.getAttribute('data-notif-id');
+        if (!id) return;
+        try {
+          await deleteNotification(id);
+          await renderNotifications();
+          if (statusEl) statusEl.textContent = 'Notifikace smazána.';
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se smazat notifikaci.';
+        }
+        return;
+      }
+
+      const btn = e.target.closest('[data-action="mark-notif-read"]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-notif-id');
+      if (!id) return;
+      try {
+        await markNotificationRead(id);
+        await renderNotifications();
+        if (statusEl) statusEl.textContent = 'Notifikace oznažena jako přečtené.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se označit notifikaci.';
+      }
+    });
+
+    markAllNotificationsReadBtn?.addEventListener('click', async () => {
+      try {
+        await markAllNotificationsRead();
+        await renderNotifications();
+        if (statusEl) statusEl.textContent = 'Všechny notifikace označeny jako přečtené.';
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se označit notifikace.';
+      }
+    });
+
+    if (profileForm) {
+      profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          bio: profileBioField?.value.trim() || ''
+        };
+
+        if (profilePhotoInput?.files?.[0]) {
+          const file = profilePhotoInput.files[0];
+          if (file.size > 5 * 1024 * 1024) {
+            if (statusEl) statusEl.textContent = 'Profilová fotka je příliš velká (max 5MB).';
+            return;
+          }
+          payload.profilePhoto = await readAsDataUrl(file);
+        }
+        if (profileVideoInput?.files?.[0]) {
+          const file = profileVideoInput.files[0];
+          if (file.size > 10 * 1024 * 1024) {
+            if (statusEl) statusEl.textContent = 'Úvodní video je příliš velké (max 10MB).';
+            return;
+          }
+          payload.coverVideo = await readAsDataUrl(file);
+        }
+
+        try {
+          const updated = await updateUserProfile(user.id, payload);
+          console.log('Updated profile:', updated);
+          renderUserProfile(updated);
+          profileForm.reset();
+          if (statusEl) statusEl.textContent = 'Profil byl uložen.';
+        } catch (err) {
+          if (statusEl) statusEl.textContent = 'Nepodařilo se uložit profil.';
+        }
+      });
+    }
+
+    if (mediaForm) {
+      mediaForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(mediaForm);
+        const title = String(fd.get('title') || '').trim();
+        const file = fd.get('mediaFile');
+        const visibility = String(fd.get('visibility') || 'public').trim().toLowerCase();
+        const videoKind = String(fd.get('videoKind') || 'video').trim().toLowerCase(); // video | short
+
+        if (!file || !(file instanceof File)) {
+          if (statusEl) statusEl.textContent = 'Vyberte soubor.';
+          return;
+        }
+
+        if (file.size > 20 * 1024 * 1024) {
+          if (statusEl) statusEl.textContent = 'Soubor je příliš velký (max 20MB).';
+          return;
+        }
+
+        const description = String(fd.get('description') || '');
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const url = reader.result;
+          const type = file.type.startsWith('video')
+            ? (videoKind === 'short' ? 'short' : 'video')
+            : 'image';
+
+          try {
+            await uploadMediaItem({
+              ownerId: user.id,
+              title: title || 'Bez názvu',
+              description,
+              type,
+              url,
+              visibility
+            });
+            mediaForm.reset();
+            await renderMediaList(user.id);
+            if (statusEl) statusEl.textContent = 'Obsah byl přidán.';
+          } catch (uploadError) {
+            if (statusEl) statusEl.textContent = 'Nepodařilo se přidat obsah.';
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Text příspěvek na profilu
+    if (mediaTextForm) {
+      mediaTextForm.dataset.textPreset = TEXT_STYLE_DEFAULTS.preset;
+      mediaTextForm.addEventListener('input', (e) => {
+        if (e.target.closest('[data-account-text-style]')) updateAccountTextPreview();
+      });
+      mediaTextForm.addEventListener('change', (e) => {
+        if (e.target.closest('[data-account-text-style]')) updateAccountTextPreview();
+      });
+      mediaTextForm.querySelectorAll('[data-account-text-preset]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const preset = button.dataset.accountTextPreset || TEXT_STYLE_DEFAULTS.preset;
+          const values = TEXT_PRESETS[preset] || TEXT_PRESETS.soft;
+          mediaTextForm.dataset.textPreset = preset;
+          Object.entries(values).forEach(([name, value]) => {
+            const input = mediaTextForm.elements[name];
+            if (!input) return;
+            if (input.type === 'checkbox') input.checked = Boolean(value);
+            else input.value = value;
+          });
+          mediaTextForm.querySelectorAll('[data-account-text-preset]').forEach((btn) => {
+            btn.classList.toggle('is-active', btn === button);
+          });
+          updateAccountTextPreview();
+        });
+      });
+      updateAccountTextPreview();
+
+      mediaTextForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(mediaTextForm);
+        const title = String(fd.get('title') || '').trim() || 'Textový příspěvek';
+        const text = String(fd.get('text') || '').trim();
+        const visibility = String(fd.get('visibility') || 'public').trim().toLowerCase();
+        if (!text) {
+          if (statusEl) statusEl.textContent = 'Vyplňte text příspěvku.';
+          return;
+        }
+        try {
+          await uploadMediaItem({
+            ownerId: user.id,
+            title,
+            description: text,
+            type: 'text',
+            url: '',
+            visibility,
+            textStyle: collectAccountTextStyle(fd)
+          });
+          mediaTextForm.reset();
+          mediaTextForm.dataset.textPreset = TEXT_STYLE_DEFAULTS.preset;
+          mediaTextForm.querySelectorAll('[data-account-text-preset]').forEach((btn) => {
+            btn.classList.toggle('is-active', btn.dataset.accountTextPreset === TEXT_STYLE_DEFAULTS.preset);
+          });
+          updateAccountTextPreview();
+          await renderMediaList(user.id);
+          if (statusEl) statusEl.textContent = 'Textový příspěvek byl publikován.';
+          setActiveMediaTab('upload');
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err?.message || 'Nepodařilo se publikovat text.';
+        }
+      });
+    }
+
+    // Kamera · tla··tka (fotka / video / short)
+    accountCameraSnap?.addEventListener('click', () => {
+      snapPhotoToUpload().catch(() => {});
+    });
+    accountCameraRecordVideo?.addEventListener('click', () => {
+      startRecordingToUpload('video').catch(() => {});
+    });
+    accountCameraRecordShort?.addEventListener('click', () => {
+      startRecordingToUpload('short').catch(() => {});
+    });
+    accountCameraStop?.addEventListener('click', stopRecording);
+
+    await renderMediaList(user.id);
+  };
+
+if (accountUserName || logoutButton || mediaForm || mediaList) {
+    initAccountPage();
+  }
+
+})();
+
+
+

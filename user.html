@@ -1,0 +1,102 @@
+﻿<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profil uživatele</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=49" />
+  <link rel="stylesheet" href="modal.css?v=7" />
+  <link rel="stylesheet" href="premium.css?v=1" />
+  <script src="background.js?v=8" defer></script>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <svg class="bg-svg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#6D5EF7" stop-opacity="0.95" />
+          <stop offset="0.5" stop-color="#60A5FA" stop-opacity="0.75" />
+          <stop offset="1" stop-color="#22D3EE" stop-opacity="0.6" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="800" fill="#0B1230" opacity="0" />
+    </svg>
+  </div>
+
+  <nav class="app-quicknav user-quicknav" aria-label="Rychlé akce profilu">
+    <div class="app-quicknav__group">
+      <button class="btn btn-tertiary app-nav-btn" id="backToFeed" type="button">Zpět</button>
+      <button class="btn btn-secondary app-nav-btn" id="userSettings" type="button">⚙️ Nastavení</button>
+    </div>
+    <div class="app-quicknav__group">
+      <button class="btn btn-secondary app-nav-btn" id="logout" type="button">Odhlásit se</button>
+    </div>
+  </nav>
+  <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+
+  <main class="page app-page">
+    <section class="card" style="max-width:1120px;">
+      <header class="feed-hero" style="margin-bottom:14px;">
+        <div class="feed-hero__left" style="display:flex; gap:20px; align-items:flex-start;">
+          <img src="Anuk-logo.png" alt="Logo" class="logo" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
+          <div>
+            <div class="logo" aria-hidden="true">
+              <span class="logo-dot"></span>
+              <span class="logo-text">Anuk</span>
+            </div>
+            <h1 id="userTitle">Profil</h1>
+            <p id="userSubtitle">Načítám...</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="profile-card profile-card--view" style="margin-top:0;">
+        <div class="profile-hero">
+          <div class="profile-cover">
+            <video id="viewCoverVideo" muted loop playsinline hidden></video>
+            <div class="cover-placeholder" id="viewCoverPlaceholder">Bez úvodního videa</div>
+          </div>
+
+          <div class="profile-meta">
+            <div class="profile-avatar" id="viewAvatar" aria-hidden="true"></div>
+            <div class="profile-summary">
+              <span class="label">Profil</span>
+              <h2 id="viewName">-</h2>
+              <div style="display:flex; gap:20px; align-items:center; margin:8px 0;">
+                <span class="role-badge" id="viewRole">Uživatel</span>
+                <div style="font-size:14px; color:var(--text-secondary, #999);">
+                  <span id="viewFollowing">0</span> sleduje · <span id="viewFollowers">0</span> sledujících
+                </div>
+              </div>
+              <p class="profile-bio" id="viewBio">-</p>
+              <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="followButton" type="button">Sledovat</button>
+                <button class="btn btn-secondary" id="unfollowButton" type="button" hidden>Přestat sledovat</button>
+                <button class="btn btn-primary js-open-chats" id="userChatButton" type="button">✉️ Žádost o zprávu</button>
+                <button class="btn btn-secondary" id="copyProfileLinkButton" type="button">🔗 Kopírovat profil</button>
+              </div>
+              <div id="followHint" class="account-label" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style="margin-top:18px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <h2 style="margin:0; font-size:18px;">Příspěvky</h2>
+      </div>
+      <div class="feed-list" id="userPosts" style="margin-top:12px;">
+        <div class="feed-empty">Načítám příspěvky...</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="appearance-settings.js?v=3"></script>
+  <script src="user.js?v=8"></script>
+  <script src="chat.js?v=19" type="text/javascript"></script>
+  <script src="media-optimizer.js?v=2" type="text/javascript"></script>
+  <script src="ui-text-fixes.js?v=1" type="text/javascript"></script>
+</body>
+</html>

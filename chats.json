@@ -1,0 +1,137 @@
+{
+  "threads": [
+    {
+      "id": "chat-mp44qo835a2610",
+      "participantIds": [
+        "1778578356746-f0bd6906498cc",
+        "1778574346897-7fddb1fb40b38"
+      ],
+      "status": "accepted",
+      "requestedBy": "",
+      "createdAt": "2026-05-13T14:03:16.131Z",
+      "updatedAt": "2026-05-13T18:40:09.596Z",
+      "messages": [
+        {
+          "id": "msg-mp44qo8373c566",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc\n👍👍",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:03:16.131Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44un94a5ea06",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:21.496Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44upgg1bbf3d",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:24.351Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44us7k79f263",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:27.920Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44utkub78e65",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:29.694Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44uvdf80aa45",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:32.019Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44v7kb58d53e",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:47.819Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp44v9bpfce54e",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "cc",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:06:50.101Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp4580he6e49ad",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "🎉",
+          "attachments": [],
+          "createdAt": "2026-05-13T14:16:45.170Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp47x9ph992536",
+          "senderId": "1778578356746-f0bd6906498cc",
+          "text": "😂💪",
+          "attachments": [],
+          "createdAt": "2026-05-13T15:32:22.757Z",
+          "readBy": [
+            "1778578356746-f0bd6906498cc",
+            "1778574346897-7fddb1fb40b38"
+          ]
+        },
+        {
+          "id": "msg-mp4emr986f8844",
+          "senderId": "1778574346897-7fddb1fb40b38",
+          "text": "cs",
+          "attachments": [],
+          "createdAt": "2026-05-13T18:40:09.596Z",
+          "readBy": [
+            "1778574346897-7fddb1fb40b38"
+          ]
+        }
+      ]
+    }
+  ]
+}

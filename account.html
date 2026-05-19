@@ -1,0 +1,875 @@
+﻿<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Můj účet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=49" />
+  <link rel="stylesheet" href="modal.css?v=7" />
+  <link rel="stylesheet" href="premium.css?v=1" />
+  <link rel="stylesheet" href="admin.css?v=2" />
+  <script src="background.js?v=8" defer></script>
+
+</head>
+<body class="account-body">
+  <div class="bg" aria-hidden="true">
+    <svg class="bg-svg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+
+        <!-- animace pro plavání objektů (SVG + CSS) -->
+        <style>
+          /* pozice objektů: chceme "plavat" jen pozadí, ne UI */
+          .float-1{ animation: float1 18s ease-in-out infinite; transform-origin: 50% 50%; }
+          .float-2{ animation: float2 22s ease-in-out infinite; transform-origin: 50% 50%; }
+          .float-3{ animation: float3 26s ease-in-out infinite; transform-origin: 50% 50%; }
+          .float-4{ animation: float4 30s ease-in-out infinite; transform-origin: 50% 50%; }
+
+          @keyframes float1{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(22px,-18px);} 100%{ transform: translate(0px,0px);} }
+          @keyframes float2{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(-18px,16px);} 100%{ transform: translate(0px,0px);} }
+          @keyframes float3{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(14px,20px);} 100%{ transform: translate(0px,0px);} }
+          @keyframes float4{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(-24px,-14px);} 100%{ transform: translate(0px,0px);} }
+        </style>
+
+        <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#6D5EF7" stop-opacity="0.95" />
+          <stop offset="0.5" stop-color="#60A5FA" stop-opacity="0.75" />
+          <stop offset="1" stop-color="#22D3EE" stop-opacity="0.6" />
+        </linearGradient>
+
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.6" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- jemné modré "světlo" pozadí -->
+      <rect x="0" y="0" width="1200" height="800" fill="#0B1230" opacity="0" />
+
+      <!-- ostře kreslené kontury (černé/velmi tmavé) + "glassy" akcent -->
+      <g fill="none" filter="url(#glow)">
+        <!-- mřížka teček (viditelnější, žádné rozmazání outline kruhů) -->
+        <g opacity="0.35" stroke="#000" stroke-width="2">
+          <circle cx="120" cy="120" r="2" />
+          <circle cx="180" cy="180" r="2" />
+          <circle cx="240" cy="120" r="2" />
+          <circle cx="300" cy="180" r="2" />
+          <circle cx="360" cy="120" r="2" />
+          <circle cx="420" cy="180" r="2" />
+          <circle cx="480" cy="120" r="2" />
+          <circle cx="540" cy="180" r="2" />
+
+          <circle cx="720" cy="120" r="2" />
+          <circle cx="780" cy="180" r="2" />
+          <circle cx="840" cy="120" r="2" />
+          <circle cx="900" cy="180" r="2" />
+          <circle cx="960" cy="120" r="2" />
+          <circle cx="1020" cy="180" r="2" />
+        </g>
+
+        <!-- kolečka vedle sebe, zmenšená -->
+        <g class="float-1" stroke="#000" stroke-opacity="0.38" stroke-width="3">
+
+          <circle cx="170" cy="190" r="52" />
+          <circle cx="270" cy="270" r="38" />
+          <circle cx="380" cy="210" r="44" />
+          <circle cx="520" cy="260" r="36" />
+          <circle cx="650" cy="190" r="48" />
+
+          <circle cx="820" cy="230" r="40" />
+          <circle cx="930" cy="160" r="50" />
+          <circle cx="1030" cy="240" r="38" />
+
+          <circle cx="250" cy="540" r="52" />
+          <circle cx="370" cy="620" r="40" />
+          <circle cx="520" cy="565" r="44" />
+          <circle cx="660" cy="640" r="34" />
+          <circle cx="820" cy="600" r="48" />
+          <circle cx="980" cy="560" r="42" />
+        </g>
+
+        <!-- akcent ·glass· kontury -->
+        <g stroke="url(#acc)" stroke-opacity="0.85" stroke-width="1.6">
+          <circle cx="170" cy="190" r="52" />
+          <circle cx="270" cy="270" r="38" />
+          <circle cx="380" cy="210" r="44" />
+          <circle cx="520" cy="260" r="36" />
+          <circle cx="650" cy="190" r="48" />
+          <circle cx="820" cy="230" r="40" />
+          <circle cx="930" cy="160" r="50" />
+          <circle cx="1030" cy="240" r="38" />
+          <circle cx="250" cy="540" r="52" />
+          <circle cx="370" cy="620" r="40" />
+          <circle cx="520" cy="565" r="44" />
+          <circle cx="660" cy="640" r="34" />
+          <circle cx="820" cy="600" r="48" />
+          <circle cx="980" cy="560" r="42" />
+        </g>
+
+        <!-- obdélníky vedle sebe -->
+        <g stroke="#000" stroke-opacity="0.34" stroke-width="3">
+          <rect x="70" y="410" width="150" height="80" rx="18" />
+          <rect x="240" y="430" width="180" height="90" rx="18" />
+          <rect x="450" y="410" width="160" height="80" rx="18" />
+          <rect x="640" y="430" width="220" height="90" rx="18" />
+          <rect x="890" y="420" width="240" height="90" rx="18" />
+        </g>
+
+        <!-- trojúhelníky + křížky (víc a malé) -->
+        <g stroke="#000" stroke-opacity="0.35" stroke-width="3">
+          <!-- křížky -->
+          <path d="M160 650 L196 614" />
+          <path d="M160 614 L196 650" />
+
+          <path d="M320 620 L356 584" />
+          <path d="M320 584 L356 620" />
+
+          <path d="M510 665 L546 629" />
+          <path d="M510 629 L546 665" />
+
+          <path d="M690 620 L726 584" />
+          <path d="M690 584 L726 620" />
+
+          <path d="M910 650 L946 614" />
+          <path d="M910 614 L946 650" />
+
+          <!-- trojúhelníky -->
+          <path d="M120 460 L150 410 L180 460 Z" />
+          <path d="M290 475 L320 425 L350 475 Z" />
+          <path d="M470 455 L500 405 L530 455 Z" />
+          <path d="M680 475 L710 425 L740 475 Z" />
+          <path d="M900 470 L930 420 L960 470 Z" />
+
+          <path d="M250 350 L275 310 L300 350 Z" />
+          <path d="M520 350 L545 310 L570 350 Z" />
+          <path d="M790 340 L815 300 L840 340 Z" />
+        </g>
+
+        <!-- jemné spojnice -->
+        <g stroke="#000" stroke-opacity="0.22" stroke-width="2">
+          <path d="M110 250 C240 160, 420 160, 560 240" fill="none" />
+          <path d="M590 430 C740 340, 920 360, 1050 450" fill="none" />
+          <path d="M120 620 C260 530, 430 540, 610 610" fill="none" />
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <nav class="app-quicknav account-quicknav" aria-label="Rychlé akce účtu">
+    <div class="app-quicknav__group account-quicknav__group">
+      <button class="btn btn-tertiary app-nav-btn account-nav-btn" type="button" id="logoutButton">Odhlásit se</button>
+      <button class="btn btn-secondary app-nav-btn account-nav-btn" type="button" id="accountSettingsButton">⚙️ Nastavení</button>
+    </div>
+    <div class="app-quicknav__group app-quicknav__group--main account-quicknav__group account-quicknav__group--main">
+      <button class="btn btn-secondary app-nav-btn account-nav-btn" type="button" id="openFeedButton">Veřejná nástěnka</button>
+      <button class="btn btn-secondary app-nav-btn account-nav-btn" type="button" id="openFollowingButton">Sleduji</button>
+      <button class="btn btn-primary app-nav-btn account-nav-btn js-open-chats" type="button" id="accountChatsButton">💬 Chaty</button>
+    </div>
+  </nav>
+
+  <!-- Admin ozubené kolečko - defaultně skrytá, zapne se jen adminovi -->
+  <button class="btn btn-secondary admin-toggle" type="button" id="adminToggleButton" aria-label="Administrace" title="Administrace" hidden>⚙️</button>
+  <main class="page account-page">
+    <section class="card account-card" aria-label="účet">
+      <header class="header account-header">
+        <div class="feed-hero__left account-title-lockup" style="display:flex; gap:20px; align-items:flex-start;">
+          <img src="Anuk-logo.png" alt="Logo" class="logo" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
+          <div>
+            <div class="logo" aria-hidden="true">
+              <span class="logo-dot"></span>
+              <span class="logo-text">Anuk</span>
+            </div>
+            <h1>Profil a obsah</h1>
+            <p>Spravujte svůj profil, příspěvky a nastavení z jednoho přehledného místa.</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="account-panel">
+        <div class="account-left">
+          <div class="account-summary">
+            <span class="account-label">Přihlášený účet</span>
+            <p class="account-value" id="accountUserName">Guest</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="profile-card" id="profileCard">
+        <div class="profile-hero">
+          <div class="profile-cover">
+            <video id="profileCoverVideo" muted loop playsinline hidden></video>
+            <div class="cover-placeholder" id="profileCoverPlaceholder">Přidejte úvodní video a dejte profilu vlastní atmosféru.</div>
+          </div>
+
+          <div class="cover-upload">
+            <label class="field" style="margin:0;">
+              <span class="field__label">Úvodní video</span>
+              <input class="field__input" type="file" id="profileVideoInput" accept="video/*" />
+            </label>
+          </div>
+
+          <div class="profile-meta">
+            <!-- Profilová fotka: kliknutím na avatar vybereš soubor -->
+            <label class="profile-avatar profile-avatar--upload" id="profileAvatarLabel" aria-label="Nahrát profilovou fotku">
+              <span class="profile-avatar__overlay" aria-hidden="true">+</span>
+              <input class="field__input" type="file" id="profilePhotoInput" accept="image/*" style="display:none;" />
+            </label>
+            <div class="profile-summary">
+              <span class="label">Profilová stránka</span>
+              <h2 id="profileName">Váš profil</h2>
+              <div class="profile-stats">
+                <span class="role-badge" id="profileRole">Uživatel</span>
+                <div>
+                  <span id="profileFollowing">0</span> sleduje · <span id="profileFollowers">0</span> sledujících
+                </div>
+              </div>
+              <p class="profile-bio" id="profileBio">Napište něco o sobě, co ukáže váš styl a zkušenosti.</p>
+            </div>
+          </div>
+        </div>
+
+        <form class="profile-form profile-edit-panel" id="profileForm">
+          <label class="field">
+            <span class="field__label">O mně</span>
+            <textarea class="field__input" id="profileBioField" rows="4" placeholder="Napište krátký popis..."></textarea>
+          </label>
+          <div class="modal__footer account-form-actions">
+            <button class="btn btn-primary" type="submit">Uložit profil</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="media-card media-card--composer">
+        <div class="account-section-head">
+          <div>
+            <h2>Nový příspěvek</h2>
+            <p class="account-label">Vyberte typ obsahu a publikujte ho na svůj profil nebo veřejný feed.</p>
+          </div>
+        </div>
+        <div class="media-form-tabs media-form-tabs--comfortable">
+          <button class="tab-btn active" type="button" data-tab="upload">Nahrát soubor</button>
+          <button class="tab-btn" type="button" data-tab="camera">Fotka z kamery</button>
+          <button class="tab-btn" type="button" data-tab="video">Video</button>
+          <button class="tab-btn" type="button" data-tab="text">Text</button>
+        </div>
+
+        <form id="mediaForm" class="media-form" data-form-tab="upload">
+          <label class="field">
+            <span class="field__label">Název příspěvku</span>
+            <input class="field__input" type="text" name="title" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Viditelnost</span>
+            <select class="field__input" name="visibility">
+              <option value="public" selected>Veřejné</option>
+              <option value="followers">Jen pro sledující</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Popis příspěvku</span>
+            <textarea class="field__input" name="description" rows="3" placeholder="Přidejte krátké popis pro veřejné feed"></textarea>
+          </label>
+
+          <!-- Typ videa se volí v záložce "Video". Tady je jen skrytá hodnota pro upload handler. -->
+          <input type="hidden" name="videoKind" id="mediaVideoKind" value="video" />
+
+          <label class="field">
+            <span class="field__label">Soubor</span>
+            <input class="field__input" type="file" id="mediaFileInput" name="mediaFile" accept="image/*,video/*" required />
+          </label>
+
+          <div class="modal__footer">
+            <button class="btn btn-primary" type="submit">Přidat obsah</button>
+          </div>
+        </form>
+
+        <form id="mediaCameraForm" class="media-form" data-form-tab="camera" hidden>
+          <div class="account-label" style="margin:0 0 12px;">
+            Vyfoť se - po pořízení se obsah automaticky připraví do záložky "Nahrát soubor".
+          </div>
+
+          <div class="camera-preview" style="margin:0 0 12px;">
+            <video id="accountCameraVideo" autoplay playsinline muted></video>
+            <canvas id="accountCameraCanvas" hidden></canvas>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Název příspěvku</span>
+            <input class="field__input" type="text" name="title" value="Selfie" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Viditelnost</span>
+            <select class="field__input" name="visibility">
+              <option value="public" selected>Veřejné</option>
+              <option value="followers">Jen pro sledující</option>
+            </select>
+          </label>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" type="button" id="accountCameraSnap"> Vyfotit</button>
+          </div>
+          <div class="hint" id="accountCameraStatus" style="text-align:left; margin-top:10px;"></div>
+        </form>
+
+        <form id="mediaVideoForm" class="media-form" data-form-tab="video" hidden>
+          <div class="account-label" style="margin:0 0 12px;">
+            Natoč video nebo short - po dokončení se to automaticky přepne do "Nahrát soubor".
+          </div>
+
+          <div class="camera-preview" style="margin:0 0 12px;">
+            <video id="accountVideoPreview" autoplay playsinline muted></video>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Název příspěvku</span>
+            <input class="field__input" type="text" name="title" value="Moje video" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Viditelnost</span>
+            <select class="field__input" name="visibility">
+              <option value="public" selected>Veřejné</option>
+              <option value="followers">Jen pro sledující</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Typ</span>
+            <select class="field__input" id="accountVideoKind">
+              <option value="video" selected>Video (do 1:30)</option>
+              <option value="short">Short (do 0:30)</option>
+            </select>
+          </label>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" type="button" id="accountVideoRecord">? Nahrávat</button>
+            <button class="btn btn-tertiary" type="button" id="accountVideoStop" disabled>? Zastavit</button>
+          </div>
+          <div class="hint" id="accountVideoStatus" style="text-align:left; margin-top:10px;"></div>
+        </form>
+
+        <form id="mediaTextForm" class="media-form" data-form-tab="text" hidden>
+          <div class="text-compose">
+            <div class="text-compose__main">
+              <label class="field">
+                <span class="field__label">Nadpis</span>
+                <input class="field__input" type="text" name="title" placeholder="Např. Dneska..." required data-account-text-style />
+              </label>
+              <label class="field">
+                <span class="field__label">Viditelnost</span>
+                <select class="field__input" name="visibility">
+                  <option value="public" selected>Veřejné</option>
+                  <option value="followers">Jen pro sledující</option>
+                </select>
+              </label>
+              <label class="field text-compose__textarea">
+                <span class="field__label">Text</span>
+                <textarea class="field__input" name="text" rows="8" placeholder="Napište text příspěvku..." required data-account-text-style></textarea>
+              </label>
+            </div>
+            <aside class="text-compose__tools" aria-label="Vzhled textového příspěvku">
+              <div class="text-tool-group">
+                <span class="field__label">Styl pozadí</span>
+                <div class="text-preset-row">
+                  <button class="text-preset is-active" type="button" data-account-text-preset="soft" aria-label="Jemné pozadí"></button>
+                  <button class="text-preset text-preset--sunset" type="button" data-account-text-preset="sunset" aria-label="Teplý západ"></button>
+                  <button class="text-preset text-preset--ocean" type="button" data-account-text-preset="ocean" aria-label="Modrá vlna"></button>
+                  <button class="text-preset text-preset--ink" type="button" data-account-text-preset="ink" aria-label="Tmavý styl"></button>
+                  <button class="text-preset text-preset--paper" type="button" data-account-text-preset="paper" aria-label="Papír"></button>
+                </div>
+              </div>
+              <div class="text-tool-grid">
+                <label class="field">
+                  <span class="field__label">Písmo</span>
+                  <select class="field__input" name="fontFamily" data-account-text-style>
+                    <option value="Inter" selected>Inter</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Trebuchet MS">Trebuchet</option>
+                    <option value="Courier New">Monospace</option>
+                    <option value="Impact">Impact</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Velikost</span>
+                  <input class="field__input" type="range" name="fontSize" min="16" max="34" value="20" data-account-text-style />
+                </label>
+                <label class="field">
+                  <span class="field__label">Barva textu</span>
+                  <input class="field__input field__input--color" type="color" name="textColor" value="#f8fafc" data-account-text-style />
+                </label>
+                <label class="field">
+                  <span class="field__label">Pozadí</span>
+                  <input class="field__input field__input--color" type="color" name="backgroundColor" value="#1f2937" data-account-text-style />
+                </label>
+                <label class="field">
+                  <span class="field__label">Zarovnání</span>
+                  <select class="field__input" name="textAlign" data-account-text-style>
+                    <option value="left" selected>Vlevo</option>
+                    <option value="center">Na střed</option>
+                    <option value="right">Vpravo</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Rámeček</span>
+                  <select class="field__input" name="borderStyle" data-account-text-style>
+                    <option value="glass" selected>Sklo</option>
+                    <option value="clean">Čistý</option>
+                    <option value="bold">Výrazný</option>
+                  </select>
+                </label>
+              </div>
+              <div class="text-toggle-row">
+                <label class="text-toggle"><input type="checkbox" name="bold" data-account-text-style /> Tučně</label>
+                <label class="text-toggle"><input type="checkbox" name="italic" data-account-text-style /> Kurzíva</label>
+                <label class="text-toggle"><input type="checkbox" name="shadow" checked data-account-text-style /> Stín</label>
+              </div>
+              <div class="text-post-preview" id="accountTextPreview" aria-live="polite">
+                <strong>Náhled příspěvku</strong>
+                <span>Text se zobrazí tady.</span>
+              </div>
+            </aside>
+          </div>
+          <div class="modal__footer">
+            <button class="btn btn-primary" type="submit">Publikovat</button>
+          </div>
+        </form>
+
+        <div class="media-list" id="mediaList"></div>
+      </section>
+
+      <section class="media-card" aria-label="Notifikace">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <h2 style="margin:0;">Notifikace</h2>
+          <button class="btn btn-secondary" type="button" id="markAllNotificationsRead">Označit vše jako přečtené</button>
+        </div>
+        <div class="account-label" style="margin:10px 0 0;">
+          Přehled žádostí o sledování, schválení a dalších událostí.
+        </div>
+        <div style="margin-top:12px;" id="notificationsList"></div>
+      </section>
+
+      <div class="hint" role="status" aria-live="polite" id="status"></div>
+
+      <footer class="footer">
+        <span>Váš osobní prostor.</span>
+      </footer>
+    </section>
+  </main>
+
+  <section class="admin-card" id="adminPanel" hidden>
+    <div class="admin-shell">
+      <header class="admin-topbar">
+        <div class="admin-title">
+          <h2>Administrátorský panel</h2>
+          <p class="admin-note">Správa uživatelů, banů, WiFi poznámek a obsahu.</p>
+        </div>
+        <div class="admin-topbar-actions">
+          <button class="btn btn-secondary" type="button" id="refreshAdminList">Aktualizovat</button>
+          <button class="btn btn-tertiary" type="button" id="adminCloseButton" aria-label="Zavřít administrátorský panel">&times;</button>
+        </div>
+      </header>
+
+      <section class="admin-block admin-intro">
+        <h3>Rychlý přehled</h3>
+        <p>Akce (ban/WiFi) najdete přímo u každého uživatele. Média spravujete níže v seznamu.</p>
+      </section>
+
+      <section class="admin-block">
+        <div class="admin-block-header">
+          <h3>Produkční stav</h3>
+          <button class="btn btn-secondary" type="button" id="adminHealthRefresh">Ověřit</button>
+        </div>
+        <div class="admin-health-list" id="adminHealthList">
+          <div class="admin-health-item is-pending">
+            <strong>Kontrola</strong>
+            <span>Čeká na ověření backendu.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-kpis" aria-label="Souhrn">
+        <div class="kpi">
+          <div class="kpi-label">Uživatelé</div>
+          <div class="kpi-value" id="adminUserCount">0</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Zablokovaní</div>
+          <div class="kpi-value" id="adminBlockedCount">0</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Tvůrci</div>
+          <div class="kpi-value" id="adminCreatorCount">0</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Média</div>
+          <div class="kpi-value" id="adminMediaCount">0</div>
+        </div>
+      </section>
+
+      <section class="admin-block">
+        <div class="admin-block-header">
+          <h3>Uživatelé</h3>
+        </div>
+        <div class="admin-user-list" id="adminUserList"></div>
+      </section>
+
+      <section class="admin-block">
+        <div class="admin-block-header">
+          <h3>Příspěvky podle uživatele</h3>
+          <button class="btn btn-secondary" type="button" id="refreshAdminMedia">Aktualizovat média</button>
+        </div>
+        <div class="admin-media-list" id="adminMediaList"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- Admin akce (ban / wifi) - modal bez window.prompt -->
+  <div class="modal" id="adminActionModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="adminActionTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="adminActionTitle">Admin akce</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <form class="modal__body" id="adminActionForm">
+        <input type="hidden" name="mode" />
+        <input type="hidden" name="userId" />
+
+        <label class="field" data-field="hours">
+          <span class="field__label">Délka banu (hodiny)</span>
+          <input class="field__input" type="number" name="hours" min="1" step="1" value="48" />
+        </label>
+
+        <label class="field" data-field="reason">
+          <span class="field__label">Důvod</span>
+          <input class="field__input" type="text" name="reason" placeholder="Např. Porušení pravidel" />
+        </label>
+
+        <label class="field" data-field="wifiName">
+          <span class="field__label">WiFi poznámka</span>
+          <input class="field__input" type="text" name="wifiName" placeholder="Např. O2-Home-5G / iPhone hotspot" />
+        </label>
+
+        <div class="modal__footer">
+          <button class="btn btn-primary" type="submit">Uložit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Nastavení - bezpečnost -->
+  <div class="modal" id="settingsModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="settingsModalTitle">Nastavení</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin:0 0 14px;">
+          <button class="btn btn-secondary" type="button" id="settingsTabSecurity">Bezpečnost</button>
+          <button class="btn btn-secondary" type="button" id="settingsTabPrivacy">Soukromí</button>
+          <button class="btn btn-secondary" type="button" id="settingsTabAppearance">Vzhled</button>
+          <button class="btn btn-secondary" type="button" id="settingsTabSocial">Sledování</button>
+          <button class="btn btn-secondary" type="button" id="settingsTabBlocks">Blokace</button>
+          <button class="btn btn-secondary" type="button" id="settingsTabExport">Export</button>
+        </div>
+
+        <!-- Bezpečnost -->
+        <section id="settingsSectionSecurity">
+          <h3 style="margin:0 0 10px;">Bezpečnost</h3>
+          <div class="account-label" style="margin:0 0 12px;">
+            Spravuj přihlášení, veřejné jméno a citlivé akce účtu.
+          </div>
+          <form id="settingsPasswordForm">
+            <label class="field">
+              <span class="field__label">Současné heslo</span>
+              <input class="field__input" type="password" name="currentPassword" autocomplete="current-password" />
+            </label>
+            <label class="field">
+              <span class="field__label">Nový heslo</span>
+              <input class="field__input" type="password" name="newPassword" autocomplete="new-password" required />
+            </label>
+            <div class="modal__footer">
+              <button class="btn btn-primary" type="submit">Uložit heslo</button>
+            </div>
+          </form>
+
+          <div style="height:1px; background:rgba(255,255,255,0.08); margin:16px 0;"></div>
+
+          <form id="settingsIdentityForm">
+            <div class="row">
+              <label class="field">
+                <span class="field__label">Jméno</span>
+                <input class="field__input" type="text" name="firstName" id="settingsFirstName" autocomplete="given-name" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Příjmení</span>
+                <input class="field__input" type="text" name="lastName" id="settingsLastName" autocomplete="family-name" required />
+              </label>
+            </div>
+            <label class="field">
+              <span class="field__label">Email nebo telefon</span>
+              <input class="field__input" type="text" name="contact" id="settingsContact" autocomplete="email" required />
+            </label>
+            <label class="field">
+              <span class="field__label">Potvrď heslem</span>
+              <input class="field__input" type="password" name="currentPassword" autocomplete="current-password" required />
+            </label>
+            <div class="modal__footer">
+              <button class="btn btn-primary" type="submit">Uložit údaje</button>
+            </div>
+          </form>
+
+          <div style="height:1px; background:rgba(255,255,255,0.08); margin:16px 0;"></div>
+
+          <form id="settingsDeleteAccountForm">
+            <h4 style="margin:0 0 8px;">Smazat účet</h4>
+            <div class="account-label" style="margin:0 0 12px;">
+              Smazání účtu je nevratné. Odstraní profil, příspěvky, komentáře, sledování, blokace a notifikace.
+            </div>
+            <label class="field">
+              <span class="field__label">Heslo</span>
+              <input class="field__input" type="password" name="currentPassword" autocomplete="current-password" required />
+            </label>
+            <label class="field">
+              <span class="field__label">Pro potvrzení napiš SMAZAT</span>
+              <input class="field__input" type="text" name="confirmText" autocomplete="off" required />
+            </label>
+            <div class="modal__footer">
+              <button class="btn btn-tertiary" type="submit">Smazat účet</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Soukromí -->
+        <section id="settingsSectionPrivacy" hidden>
+          <h3 style="margin:0 0 10px;">Soukromí</h3>
+          <form id="settingsPrivacyForm">
+            <label class="field" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="privateAccountToggle" />
+              <span class="field__label" style="margin:0;">Soukromí účet (sledování vyžaduje schválení)</span>
+            </label>
+            <div class="account-label" style="margin:10px 0 0;">
+              Pokud je účet veřejné, sledování se nastaví okamžitě bez žádostí.
+            </div>
+
+            <div style="height:1px; background:rgba(255,255,255,0.08); margin:16px 0;"></div>
+
+            <h4 style="margin:0 0 10px;">Oznámení</h4>
+            <div class="account-label" style="margin:0 0 12px;">
+              Zde si můžeš vypnout některé typy oznámení v aplikaci.
+            </div>
+
+            <label class="field" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="notifFollowRequestsToggle" />
+              <span class="field__label" style="margin:0;">Žádosti o sledování</span>
+            </label>
+
+            <label class="field" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="notifFollowAcceptedToggle" />
+              <span class="field__label" style="margin:0;">Schválené sledování</span>
+            </label>
+
+            <label class="field" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="notifFollowRejectedToggle" />
+              <span class="field__label" style="margin:0;">Zamítnuté sledování</span>
+            </label>
+
+            <div class="modal__footer">
+              <button class="btn btn-primary" type="submit">Uložit soukromé</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Vzhled -->
+        <section id="settingsSectionAppearance" hidden>
+          <h3 style="margin:0 0 10px;">Vzhled a ovládání</h3>
+          <div class="account-label" style="margin:0 0 12px;">
+            Přizpůsobte si tempo aplikace, chat a vizuální styl.
+          </div>
+          <form id="settingsAppearanceForm" class="settings-grid-form">
+            <label class="field">
+              <span class="field__label">Styl aplikace</span>
+              <select class="field__input" id="settingsTheme" name="theme">
+                <option value="glass">Skleněný</option>
+                <option value="contrast">Kontrastní</option>
+                <option value="calm">Klidný</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Hustota rozhraní</span>
+              <select class="field__input" id="settingsDensity" name="density">
+                <option value="comfortable">Pohodlná</option>
+                <option value="compact">Kompaktní</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Velikost textu</span>
+              <select class="field__input" id="settingsTextScale" name="textScale">
+                <option value="normal">Normální</option>
+                <option value="large">Větší text</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Tvar prvků</span>
+              <select class="field__input" id="settingsRadius" name="radius">
+                <option value="soft">Jemně zaoblené</option>
+                <option value="rounded">Více kulaté</option>
+                <option value="sharp">Ostřejší</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Šířka obsahu</span>
+              <select class="field__input" id="settingsLayoutWidth" name="layoutWidth">
+                <option value="standard">Standardní</option>
+                <option value="wide">Širší feed</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Síla skla</span>
+              <select class="field__input" id="settingsGlassStrength" name="glassStrength">
+                <option value="frosted">Skleněné</option>
+                <option value="clear">Čistší</option>
+                <option value="solid">Pevnější panely</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Akcent aplikace</span>
+              <select class="field__input" id="settingsAccent" name="accent">
+                <option value="teal">Tyrkysový</option>
+                <option value="violet">Fialový</option>
+                <option value="blue">Modrý</option>
+                <option value="amber">Jantarový</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Pozadí a výkon</span>
+              <select class="field__input" id="settingsBackgroundEffects" name="backgroundEffects">
+                <option value="quiet">Klidné, rychlejší</option>
+                <option value="standard">Plné vizuální efekty</option>
+                <option value="off">Vypnout efekty</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field__label">Navigace</span>
+              <select class="field__input" id="settingsNavigation" name="navigation">
+                <option value="full">Plná tlačítka</option>
+                <option value="compact">Kompaktní ovládání</option>
+              </select>
+            </label>
+            <label class="settings-toggle-card">
+              <input type="checkbox" id="settingsReduceMotion" />
+              <span>
+                <strong>Méně animací</strong>
+                <small>Vhodné pro pomalejší telefon nebo klidnější ovládání.</small>
+              </span>
+            </label>
+            <label class="settings-toggle-card">
+              <input type="checkbox" id="settingsEnterToSend" />
+              <span>
+                <strong>Enter odešle zprávu</strong>
+                <small>Shift + Enter pořád udělá nový řádek.</small>
+              </span>
+            </label>
+            <label class="settings-toggle-card">
+              <input type="checkbox" id="settingsChatSound" />
+              <span>
+                <strong>Zvuk u nových chatů</strong>
+                <small>Jemný tón při příchozí zprávě, když je chat otevřený.</small>
+              </span>
+            </label>
+            <label class="settings-toggle-card">
+              <input type="checkbox" id="settingsMediaAutoplay" />
+              <span>
+                <strong>Automaticky spouštět média</strong>
+                <small>Videa v příspěvcích se mohou spouštět sama. Vypnutí šetří výkon i data.</small>
+              </span>
+            </label>
+            <div class="modal__footer">
+              <button class="btn btn-primary" type="submit">Uložit vzhled</button>
+            </div>
+            <div class="settings-save-status" id="settingsAppearanceStatus" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <!-- Sledování -->
+        <section id="settingsSectionSocial" hidden>
+          <h3 style="margin:0 0 10px;">Sledování</h3>
+          <div class="account-label" style="margin:0 0 12px;">
+            Tady spravuješ koho sleduješ, kdo sleduje tebe a také odchozí Žádosti.
+          </div>
+          <div style="display:grid; gap:14px;">
+            <div>
+              <strong>Příchozí Žádosti</strong>
+              <div id="settingsIncomingList" style="margin-top:10px;"></div>
+            </div>
+            <div>
+              <strong>Sleduji</strong>
+              <div id="settingsFollowingList" style="margin-top:10px;"></div>
+            </div>
+            <div>
+              <strong>Sledují mě</strong>
+              <div id="settingsFollowersList" style="margin-top:10px;"></div>
+            </div>
+            <div>
+              <strong>Moje odchozí Žádosti</strong>
+              <div id="settingsOutgoingList" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Blokace -->
+        <section id="settingsSectionBlocks" hidden>
+          <h3 style="margin:0 0 10px;">Blokace</h3>
+          <div class="account-label" style="margin:0 0 12px;">
+            Zablokovaní uživatel ti nemůže posílat Žádosti o sledování a neuvidí jeho obsah.
+          </div>
+          <form id="settingsBlockForm">
+            <label class="field">
+              <span class="field__label">Zablokovat uživatele podle jména</span>
+              <input class="field__input" type="search" name="name" placeholder="např. Jan Novák" required />
+            </label>
+            <div class="account-label" style="margin:8px 0 0;">
+              Zadej celé jméno nebo jeho část. Pokud bude více shod, aplikace vybere první přesnou shodu.
+            </div>
+            <div class="modal__footer">
+              <button class="btn btn-primary" type="submit">Zablokovat</button>
+            </div>
+          </form>
+          <div style="margin-top:12px;">
+            <strong>Zablokovaní</strong>
+            <div id="settingsBlockedList" style="margin-top:10px;"></div>
+          </div>
+        </section>
+
+        <!-- Export -->
+        <section id="settingsSectionExport" hidden>
+          <h3 style="margin:0 0 10px;">Export</h3>
+          <div class="account-label" style="margin:0 0 12px;">
+            Stáhne tvoje data jako JSON (profil + příspěvky + sledování).
+          </div>
+          <div class="modal__footer">
+            <button class="btn btn-primary" type="button" id="exportMyData">Exportovat moje data</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="three-bg.js?v=2" type="text/javascript"></script>
+  <script src="appearance-settings.js?v=3"></script>
+  <script src="script.js?v=20"></script>
+  <script src="chat.js?v=19" type="text/javascript"></script>
+  <script src="media-optimizer.js?v=2" type="text/javascript"></script>
+  <script src="ui-text-fixes.js?v=1" type="text/javascript"></script>
+</body>
+</html>

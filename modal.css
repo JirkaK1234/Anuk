@@ -1,0 +1,407 @@
+﻿:root{
+  --modal-radius: 20px;
+}
+
+/* =========================================================
+   Fullscreen loader (registrace / přechody)
+   ========================================================= */
+.anuk-loader{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(2, 6, 23, .58);
+  backdrop-filter:blur(10px);
+  z-index: 1200; /* nad modaly (1000) */
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+
+/* Fix: na některých mobilech může `max-height` omezit scroll víc, než chceme.
+   Necháme scroll řídit výškou panelu (max-height na .modal__panel). */
+.modal__scroll{
+  max-height: none;
+}
+@media (max-width: 520px){
+  .modal__scroll{
+    max-height: none;
+  }
+}
+.anuk-loader.is-visible{
+  opacity:1;
+  pointer-events:all;
+}
+.anuk-spinner{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  border:4px solid rgba(255,255,255,.22);
+  border-top-color:#22D3EE;
+  box-shadow:0 14px 40px rgba(0,0,0,.45);
+  animation:anuk-spin .9s linear infinite;
+}
+@keyframes anuk-spin{
+  to{ transform:rotate(360deg); }
+}
+
+.modal{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+
+  /* umo�n� scroll kdy� je modal vy��� ne� viewport */
+  overflow-y: auto;
+}
+
+.modal.is-open{
+  display: block;
+}
+
+.modal__backdrop{
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+}
+
+/* panel */
+.modal__panel{
+  position: relative;
+  z-index: 2;
+
+  width: min(860px, calc(100% - 39px));
+  margin: 4vh auto;
+
+  max-height: 90vh;
+
+  border-radius: var(--modal-radius);
+
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.20);
+
+  box-shadow: 0 40px 140px rgba(0,0,0,.65);
+  backdrop-filter: blur(22px) saturate(185%);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal__panel::before{
+  content:"";
+  position:absolute;
+  inset:-3px;
+
+  background:
+    radial-gradient(
+      700px 240px at 15% 0%,
+      rgba(109,94,247,.40),
+      transparent 58%
+    ),
+    radial-gradient(
+      600px 240px at 95% 10%,
+      rgba(96,165,250,.26),
+      transparent 60%
+    );
+
+  opacity:.9;
+  pointer-events:none;
+}
+
+/* header */
+.modal__header{
+  position: relative;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding: 18px 18px 10px;
+
+  flex-shrink: 0;
+}
+
+.modal__title{
+  font-weight:900;
+  font-size:18px;
+  letter-spacing:.2px;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.06),
+    0 0 26px rgba(109,94,247,.28);
+}
+
+.modal__close{
+  border:0;
+
+  background: rgba(255,255,255,.10);
+  color: var(--text);
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 12px;
+  cursor:pointer;
+
+  border: 1px solid rgba(255,255,255,.20);
+
+  transition: .15s ease;
+}
+
+.modal__close:hover{
+  box-shadow: 0 0 0 4px rgba(109,94,247,.25);
+}
+
+/* body */
+.modal__body{
+  position: relative;
+
+  padding: 0 18px 18px;
+
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  overscroll-behavior: contain;
+
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* scrollbar */
+.modal__body::-webkit-scrollbar{
+  width: 35px;
+}
+
+.modal__body::-webkit-scrollbar-track{
+  background: transparent;
+}
+
+.modal__body::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.30);
+  border-radius: 999px;
+  border: 25px solid transparent;
+  background-clip: padding-box;
+}
+
+.modal__body::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,.28);
+}
+
+/* rows */
+.row{
+  display:flex;
+  gap:12px;
+}
+
+.row .field{
+  flex:1;
+}
+
+/* fields */
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+
+  font-weight:700;
+}
+
+.field__label{
+  color: rgba(234,240,255,.85);
+  font-size:12px;
+}
+
+.field__input{
+  width:100%;
+
+  padding:7px 7px;
+
+  border-radius:14px;
+
+  border:1px solid rgba(255,255,255,.20);
+
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+
+  outline:none;
+
+  transition: .15s ease;
+}
+
+.field__input:focus{
+  box-shadow: 0 0 0 4px rgba(96,165,250,.25);
+  border-color: rgba(96,165,250,.45);
+}
+
+.field--radio .field__label{
+  margin-bottom:2px;
+}
+
+/* radio */
+.radio{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:10px 12px;
+
+  border-radius:14px;
+
+  border:1px solid rgba(255,255,255,.16);
+
+  background: rgba(255,255,255,.05);
+
+  cursor:pointer;
+  margin-top:6px;
+
+  transition: .15s ease;
+}
+
+.radio:hover{
+  background: rgba(255,255,255,.08);
+}
+
+.radio input{
+  width:16px;
+  height:16px;
+}
+
+/* footer */
+.modal__footer{
+  margin-top:6px;
+}
+
+/* mobile */
+@media (max-width: 520px){
+
+  .row{
+    flex-direction:column;
+  }
+
+  .modal__panel{
+    width: calc(100% - 20px);
+    margin: 10px auto;
+    max-height: calc(100dvh - 20px);
+  }
+}
+
+/* scroll controls */
+.modal__scroll{
+  position:relative;
+  flex:1;
+  min-height:0;
+  max-height: calc(90vh - 66px);
+
+  display:flex;
+  flex-direction:column;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  scrollbar-width:auto;
+  scrollbar-color: rgba(255,255,255,.34) transparent;
+  padding-right:4px;
+}
+
+.modal__scroll .modal__body{
+  flex:0 0 auto;
+  overflow:visible;
+  min-height:auto;
+  padding-right:26px;
+}
+
+.modal__scroll::-webkit-scrollbar{
+  width:18px;
+}
+
+.modal__scroll::-webkit-scrollbar-track{
+  background:rgba(255,255,255,.08);
+  border-radius:999px;
+}
+
+.modal__scroll::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.42);
+  border-radius:999px;
+  border:5px solid transparent;
+  background-clip:padding-box;
+}
+
+.modal__scroll::-webkit-scrollbar-thumb:hover{
+  background:rgba(255,255,255,.55);
+  background-clip:padding-box;
+}
+
+@media (max-width: 520px){
+  .modal__scroll{
+    max-height: calc(100dvh - 84px);
+    padding-right:6px;
+  }
+
+  .modal__scroll .modal__body{
+    padding-right:28px;
+  }
+}
+
+.modal__scroll-controls{
+  position:absolute;
+
+  right:12px;
+  top:12px;
+
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+
+  z-index:2;
+  pointer-events:auto;
+}
+
+.scroll-btn{
+  width:40px;
+  height:40px;
+
+  border-radius:14px;
+
+  border:1px solid rgba(255,255,255,.20);
+
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+
+  cursor:pointer;
+
+  font-weight:900;
+  line-height:1;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  transition:
+    transform .12s ease,
+    filter .12s ease,
+    box-shadow .12s ease;
+}
+
+.scroll-btn:hover{
+  transform: translateY(-1px);
+
+  filter: brightness(1.08);
+
+  box-shadow: 0 0 0 4px rgba(109,94,247,.20);
+}
+
+.scroll-btn:active{
+  transform: translateY(0);
+}

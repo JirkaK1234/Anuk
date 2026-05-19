@@ -1,0 +1,377 @@
+﻿<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vítejte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=49" />
+  <link rel="stylesheet" href="modal.css?v=7" />
+  <link rel="stylesheet" href="premium.css?v=1" />
+  <script src="background.js?v=8" defer></script>
+
+</head>
+<body>
+ <img src="Anuk-logo.png" alt="Logo" class="logo">
+  <div class="bg" aria-hidden="true">
+    <svg class="bg-svg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+
+        <!-- animace pro plavání objektů (SVG + CSS) -->
+        <style>
+          /* pozice objektů: chceme "plavat" jen pozadí, ne UI */
+          .float-1{ animation: float1 18s ease-in-out infinite; transform-origin: 50% 50%; }
+          .float-2{ animation: float2 22s ease-in-out infinite; transform-origin: 50% 50%; }
+          .float-3{ animation: float3 26s ease-in-out infinite; transform-origin: 50% 50%; }
+          .float-4{ animation: float4 30s ease-in-out infinite; transform-origin: 50% 50%; }
+
+          @keyframes float1{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(22px,-18px);} 100%{ transform: translate(0px,0px);} }
+          @keyframes float2{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(-18px,16px);} 100%{ transform: translate(0px,0px);} }
+          @keyframes float3{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(14px,20px);} 100%{ transform: translate(0px,0px);} }
+          @keyframes float4{ 0%{ transform: translate(0px,0px);} 50%{ transform: translate(-24px,-14px);} 100%{ transform: translate(0px,0px);} }
+        </style>
+
+        <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#6D5EF7" stop-opacity="0.95" />
+          <stop offset="0.5" stop-color="#60A5FA" stop-opacity="0.75" />
+          <stop offset="1" stop-color="#22D3EE" stop-opacity="0.6" />
+        </linearGradient>
+
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.6" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- jemné modré "světlo" pozadí -->
+      <rect x="0" y="0" width="1200" height="800" fill="#0B1230" opacity="0" />
+
+      <!-- ostře kreslené kontury (černé/velmi tmavé) + "glassy" akcent -->
+      <g fill="none" filter="url(#glow)">
+        <!-- mřížka teček (viditelnější, žádné rozmazání outline kruhů) -->
+        <g opacity="0.35" stroke="#000" stroke-width="2">
+          <circle cx="120" cy="120" r="2" />
+          <circle cx="180" cy="180" r="2" />
+          <circle cx="240" cy="120" r="2" />
+          <circle cx="300" cy="180" r="2" />
+          <circle cx="360" cy="120" r="2" />
+          <circle cx="420" cy="180" r="2" />
+          <circle cx="480" cy="120" r="2" />
+          <circle cx="540" cy="180" r="2" />
+
+          <circle cx="720" cy="120" r="2" />
+          <circle cx="780" cy="180" r="2" />
+          <circle cx="840" cy="120" r="2" />
+          <circle cx="900" cy="180" r="2" />
+          <circle cx="960" cy="120" r="2" />
+          <circle cx="1020" cy="180" r="2" />
+        </g>
+
+        <!-- kolečka vedle sebe, zmenšená -->
+        <g class="float-1" stroke="#000" stroke-opacity="0.38" stroke-width="3">
+
+          <circle cx="170" cy="190" r="52" />
+          <circle cx="270" cy="270" r="38" />
+          <circle cx="380" cy="210" r="44" />
+          <circle cx="520" cy="260" r="36" />
+          <circle cx="650" cy="190" r="48" />
+
+          <circle cx="820" cy="230" r="40" />
+          <circle cx="930" cy="160" r="50" />
+          <circle cx="1030" cy="240" r="38" />
+
+          <circle cx="250" cy="540" r="52" />
+          <circle cx="370" cy="620" r="40" />
+          <circle cx="520" cy="565" r="44" />
+          <circle cx="660" cy="640" r="34" />
+          <circle cx="820" cy="600" r="48" />
+          <circle cx="980" cy="560" r="42" />
+        </g>
+
+        <!-- akcent ·glass· kontury -->
+        <g stroke="url(#acc)" stroke-opacity="0.85" stroke-width="1.6">
+          <circle cx="170" cy="190" r="52" />
+          <circle cx="270" cy="270" r="38" />
+          <circle cx="380" cy="210" r="44" />
+          <circle cx="520" cy="260" r="36" />
+          <circle cx="650" cy="190" r="48" />
+          <circle cx="820" cy="230" r="40" />
+          <circle cx="930" cy="160" r="50" />
+          <circle cx="1030" cy="240" r="38" />
+          <circle cx="250" cy="540" r="52" />
+          <circle cx="370" cy="620" r="40" />
+          <circle cx="520" cy="565" r="44" />
+          <circle cx="660" cy="640" r="34" />
+          <circle cx="820" cy="600" r="48" />
+          <circle cx="980" cy="560" r="42" />
+        </g>
+
+        <!-- obdélníky vedle sebe -->
+        <g stroke="#000" stroke-opacity="0.34" stroke-width="3">
+          <rect x="70" y="410" width="150" height="80" rx="18" />
+          <rect x="240" y="430" width="180" height="90" rx="18" />
+          <rect x="450" y="410" width="160" height="80" rx="18" />
+          <rect x="640" y="430" width="220" height="90" rx="18" />
+          <rect x="890" y="420" width="240" height="90" rx="18" />
+        </g>
+
+        <!-- trojúhelníky + křížky (víc a malé) -->
+        <g stroke="#000" stroke-opacity="0.35" stroke-width="3">
+          <!-- křížky -->
+          <path d="M160 650 L196 614" />
+          <path d="M160 614 L196 650" />
+
+          <path d="M320 620 L356 584" />
+          <path d="M320 584 L356 620" />
+
+          <path d="M510 665 L546 629" />
+          <path d="M510 629 L546 665" />
+
+          <path d="M690 620 L726 584" />
+          <path d="M690 584 L726 620" />
+
+          <path d="M910 650 L946 614" />
+          <path d="M910 614 L946 650" />
+
+          <!-- trojúhelníky -->
+          <path d="M120 460 L150 410 L180 460 Z" />
+          <path d="M290 475 L320 425 L350 475 Z" />
+          <path d="M470 455 L500 405 L530 455 Z" />
+          <path d="M680 475 L710 425 L740 475 Z" />
+          <path d="M900 470 L930 420 L960 470 Z" />
+
+          <path d="M250 350 L275 310 L300 350 Z" />
+          <path d="M520 350 L545 310 L570 350 Z" />
+          <path d="M790 340 L815 300 L840 340 Z" />
+        </g>
+
+        <!-- jemné spojnice -->
+        <g stroke="#000" stroke-opacity="0.22" stroke-width="2">
+          <path d="M110 250 C240 160, 420 160, 560 240" fill="none" />
+          <path d="M590 430 C740 340, 920 360, 1050 450" fill="none" />
+          <path d="M120 620 C260 530, 430 540, 610 610" fill="none" />
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <main class="page">
+    <section class="card" aria-label="Uvítací obrazovka">
+      <header class="header">
+        <div class="logo" aria-hidden="true">
+          <span class="logo-dot"></span>
+          <span class="logo-text">Anuk</span>
+        </div>
+        <h1>Vítejte </h1>
+        <p>Vyberte si, co chcete udělat.</p>
+      </header>
+
+      <div class="actions" role="group" aria-label="Přihlašování">
+        <button class="btn btn-primary" type="button" data-action="register">Registrace</button>
+        <button class="btn btn-secondary" type="button" data-action="login">Přihlášení</button>
+        <button class="btn btn-tertiary" type="button" data-action="forgot">Zapomenuté heslo</button>
+      </div>
+
+      <section class="privacy-preview" aria-label="Soukromí a bezpečnost">
+        <div>
+          <strong>Soukromí, GDPR a bezpečnost</strong>
+          <span>Transparentní zpracování údajů, práva uživatele, export dat a ochrana účtu.</span>
+        </div>
+        <button class="btn btn-secondary" type="button" id="privacyOpen">Zásady soukromí</button>
+      </section>
+
+      <!-- Registrace modal -->
+      <div class="modal" id="modal" aria-hidden="true">
+        <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+        <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <div class="modal__header">
+            <div class="modal__title" id="modalTitle">Registrace</div>
+            <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+          </div>
+
+          <div class="modal__scroll" aria-label="Scroll pro registraci">
+            <form class="modal__body" id="registerForm">
+            <label class="field">
+              <span class="field__label">Email nebo číslo</span>
+              <input class="field__input" type="text" name="contact" autocomplete="email" required />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Heslo</span>
+              <input class="field__input" type="password" name="password" autocomplete="new-password" minlength="10" required />
+              <span class="field__hint">Minimálně 10 znaků, písmeno, číslo a speciální znak.</span>
+            </label>
+
+            <div class="row">
+              <label class="field">
+                <span class="field__label">Jméno</span>
+                <input class="field__input" type="text" name="firstName" autocomplete="given-name" required />
+              </label>
+
+              <label class="field">
+                <span class="field__label">Příjmení</span>
+                <input class="field__input" type="text" name="lastName" autocomplete="family-name" required />
+              </label>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Datum narození</span>
+              <input class="field__input" type="date" name="birthDate" required />
+            </label>
+
+            <div class="field field--radio">
+              <span class="field__label">Pohlaví</span>
+              <label class="radio">
+                <input type="radio" name="gender" value="muž" required />
+                <span>Muž</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="gender" value="Žena" />
+                <span>Žena</span>
+              </label>
+            </div>
+
+            <div class="privacy-consent">
+              <label class="checkbox-row">
+                <input type="checkbox" name="privacyAccepted" required />
+                <span>Souhlasím se zásadami soukromí a se zpracováním nezbytných údajů pro provoz účtu, bezpečnost, příspěvky, chaty a živé vysílání.</span>
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" name="marketingConsent" />
+                <span>Chci dostávat volitelné novinky k aplikaci. Tento souhlas lze kdykoliv odvolat.</span>
+              </label>
+              <button class="btn btn-tertiary" type="button" id="privacyOpenRegister">Přečíst zásady</button>
+            </div>
+
+            <div class="modal__footer">
+              <button class="btn btn-primary" type="submit">Odeslat registraci</button>
+            </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Přihlášení modal -->
+      <div class="modal" id="loginModal" aria-hidden="true">
+        <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+        <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+          <div class="modal__header">
+            <div class="modal__title" id="loginModalTitle">Přihlášení</div>
+            <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+          </div>
+
+          <div class="modal__scroll" aria-label="Scroll pro přihlášení">
+            <form class="modal__body" id="loginForm">
+              <label class="field">
+                <span class="field__label">Email nebo číslo</span>
+                <input class="field__input" type="text" name="contact" autocomplete="username" required />
+              </label>
+
+              <label class="field">
+                <span class="field__label">Heslo</span>
+                <input class="field__input" type="password" name="password" autocomplete="current-password" required />
+              </label>
+
+              <div class="modal__footer">
+                <button class="btn btn-primary" type="submit">Přihlásit se</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zapomenuté heslo modal -->
+      <div class="modal" id="forgotModal" aria-hidden="true">
+        <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+        <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="forgotModalTitle">
+          <div class="modal__header">
+            <div class="modal__title" id="forgotModalTitle">Zapomenuté heslo</div>
+            <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+          </div>
+
+          <div class="modal__scroll" aria-label="Scroll pro zapomenuté heslo">
+            <form class="modal__body" id="forgotForm">
+              <p style="margin:0 0 16px; color: rgba(234,240,255,.75); line-height:1.5; font-size:14px;">Zadejte email a my vám pošleme odkaz pro obnovení hesla.</p>
+
+              <label class="field">
+                <span class="field__label">Email</span>
+                <input class="field__input" type="email" name="email" autocomplete="email" required />
+              </label>
+
+              <div class="modal__footer">
+                <button class="btn btn-primary" type="submit">Obnovit heslo</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint" role="status" aria-live="polite" id="status"></div>
+
+      <div class="modal privacy-modal" id="privacyModal" aria-hidden="true">
+        <div class="modal__backdrop" data-close-privacy="true" aria-hidden="true"></div>
+        <div class="modal__panel modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="privacyModalTitle">
+          <div class="modal__header">
+            <div>
+              <div class="modal__title" id="privacyModalTitle">Zásady soukromí a GDPR</div>
+              <div class="account-label">Verze 2026-05-14 · srozumitelný přehled pro uživatele</div>
+            </div>
+            <button class="modal__close" type="button" aria-label="Zavřít zásady soukromí" data-close-privacy="true">&times;</button>
+          </div>
+          <div class="modal__body privacy-policy">
+            <section>
+              <h2>1. Kdo údaje zpracovává</h2>
+              <p>Správcem osobních údajů je provozovatel aplikace Anuk. Kontaktní e-mail správce doplňte před veřejným spuštěním služby.</p>
+            </section>
+            <section>
+              <h2>2. Jaké údaje zpracováváme</h2>
+              <p>Účet obsahuje kontaktní údaj, jméno, příjmení, datum narození, pohlaví, profilové informace a nastavení soukromí. Dále zpracováváme příspěvky, fotky, videa, komentáře, reakce, chaty, sledování, oznámení a technická data potřebná pro bezpečnost a živé vysílání.</p>
+            </section>
+            <section>
+              <h2>3. Proč údaje používáme</h2>
+              <p>Údaje používáme pro vytvoření účtu, přihlášení, zobrazení profilu, doručení zpráv, správu sledování, moderaci, prevenci zneužití, živé vysílání a ochranu služby.</p>
+            </section>
+            <section>
+              <h2>4. Právní základy</h2>
+              <p>Zpracování stojí hlavně na plnění služby, oprávněném zájmu na bezpečnosti a moderaci, souhlasu tam, kde je potřeba, a případně na zákonné povinnosti.</p>
+            </section>
+            <section>
+              <h2>5. Ukládání a mazání</h2>
+              <p>Účet a obsah držíme po dobu existence účtu. Uživatel může účet smazat v nastavení. Dočasné live místnosti jsou jen v paměti serveru a automaticky mizí nejpozději po 6 hodinách nebo po ukončení.</p>
+            </section>
+            <section>
+              <h2>6. Vaše práva</h2>
+              <p>Máte právo na přístup, opravu, výmaz, omezení zpracování, přenositelnost, námitku, odvolání souhlasu a stížnost u dozorového úřadu.</p>
+            </section>
+            <section>
+              <h2>7. Bezpečnost</h2>
+              <p>Hesla ukládáme hashovaná, stránka používá bezpečnostní hlavičky, ochranu proti vložení do cizí stránky a omezení počtu citlivých požadavků. Citlivé administrační akce jsou dostupné pouze administrátorovi.</p>
+            </section>
+            <section>
+              <h2>8. Transparentnost</h2>
+              <p>Po přihlášení lze účet spravovat, změnit nastavení soukromí, exportovat osobní údaje přes API a účet odstranit. Veřejný obsah je viditelný podle zvolené viditelnosti příspěvku.</p>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span>Moderní, rychlé a přehledné UI.</span>
+      </footer>
+    </section>
+  </main>
+
+  <script src="three-bg.js?v=2" type="text/javascript"></script>
+  <script src="appearance-settings.js?v=3"></script>
+  <script src="script.js?v=20"></script>
+  <script src="media-optimizer.js?v=2" type="text/javascript"></script>
+  <script src="ui-text-fixes.js?v=1" type="text/javascript"></script>
+</body>
+</html>
+
+

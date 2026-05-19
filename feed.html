@@ -1,0 +1,741 @@
+﻿<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Volitelné: ICE servery pro WebRTC (pro spolehlivé veřejné live napříč sítěmi je často potřeba TURN).
+       Příklad:
+       <meta name="anuk-ice-servers" content='[
+         {"urls":["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]},
+         {"urls":["turn:turn.example.com:3478?transport=udp","turn:turn.example.com:3478?transport=tcp"],"username":"USER","credential":"PASS"}
+       ]'>
+  -->
+  <title>Veřejná nástěnka</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=49" />
+  <link rel="stylesheet" href="modal.css?v=7" />
+  <link rel="stylesheet" href="premium.css?v=1" />
+  <script src="background.js?v=8" defer></script>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <svg class="bg-svg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#6D5EF7" stop-opacity="0.95" />
+          <stop offset="0.5" stop-color="#60A5FA" stop-opacity="0.75" />
+          <stop offset="1" stop-color="#22D3EE" stop-opacity="0.6" />
+        </linearGradient>
+        <linearGradient id="glass-cyan" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FFFFFF" stop-opacity=".32" />
+          <stop offset=".35" stop-color="#67E8F9" stop-opacity=".20" />
+          <stop offset="1" stop-color="#2563EB" stop-opacity=".08" />
+        </linearGradient>
+        <linearGradient id="glass-violet" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FFFFFF" stop-opacity=".28" />
+          <stop offset=".48" stop-color="#A78BFA" stop-opacity=".19" />
+          <stop offset="1" stop-color="#22D3EE" stop-opacity=".07" />
+        </linearGradient>
+        <linearGradient id="glass-warm" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FFF7ED" stop-opacity=".26" />
+          <stop offset=".52" stop-color="#F59E0B" stop-opacity=".13" />
+          <stop offset="1" stop-color="#06B6D4" stop-opacity=".07" />
+        </linearGradient>
+        <radialGradient id="glass-shine" cx=".28" cy=".18" r=".72">
+          <stop offset="0" stop-color="#FFFFFF" stop-opacity=".72" />
+          <stop offset=".24" stop-color="#FFFFFF" stop-opacity=".18" />
+          <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="800" fill="#0B1230" opacity="0" />
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <g class="float-4 glass-dust" opacity=".42" stroke="#FFFFFF" stroke-width="1.6">
+          <circle cx="95" cy="118" r="3" fill="#FFFFFF" opacity=".58" />
+          <circle cx="218" cy="82" r="2.4" fill="#67E8F9" opacity=".55" />
+          <circle cx="1018" cy="132" r="3" fill="#FFFFFF" opacity=".42" />
+          <circle cx="1108" cy="608" r="2.6" fill="#A78BFA" opacity=".48" />
+          <circle cx="144" cy="690" r="2.6" fill="#FFFFFF" opacity=".45" />
+          <circle cx="986" cy="706" r="2.8" fill="#22D3EE" opacity=".42" />
+          <path d="M68 358h20M78 348v20" />
+          <path d="M1078 292h24M1090 280v24" />
+          <path d="M552 90h20M562 80v20" />
+        </g>
+        <g class="float-1 glass-shells" stroke="#FFFFFF" stroke-opacity=".62" stroke-width="2.2" opacity=".78">
+          <circle cx="184" cy="226" r="72" fill="url(#glass-cyan)" />
+          <circle cx="166" cy="205" r="28" fill="url(#glass-shine)" stroke="none" opacity=".82" />
+          <circle cx="1028" cy="198" r="54" fill="url(#glass-violet)" />
+          <circle cx="1013" cy="182" r="20" fill="url(#glass-shine)" stroke="none" opacity=".72" />
+          <rect x="920" y="520" width="138" height="92" rx="22" transform="rotate(-8 989 566)" fill="url(#glass-cyan)" />
+          <path d="M944 540c24-10 68-14 106-5" stroke="#FFFFFF" stroke-width="2" opacity=".42" />
+          <rect x="112" y="542" width="118" height="86" rx="20" transform="rotate(10 171 585)" fill="url(#glass-warm)" />
+          <path d="M136 560c24-5 56-2 82 8" stroke="#FFFFFF" stroke-width="2" opacity=".34" />
+        </g>
+        <g class="float-2 glass-prisms" stroke="#FFFFFF" stroke-opacity=".68" stroke-width="2" opacity=".80">
+          <circle cx="362" cy="154" r="46" fill="url(#glass-violet)" />
+          <circle cx="348" cy="140" r="15" fill="url(#glass-shine)" stroke="none" />
+          <circle cx="840" cy="104" r="32" fill="url(#glass-cyan)" />
+          <path d="M664 174l52 92h-104z" fill="url(#glass-warm)" />
+          <path d="M651 196h38" stroke="#FFFFFF" stroke-width="2" opacity=".42" />
+          <path d="M270 650l70-42 64 48-68 44z" fill="url(#glass-violet)" />
+          <path d="M300 648l42-25 40 29" stroke="#FFFFFF" stroke-width="2" opacity=".35" />
+          <path d="M998 390l54 30-8 62-58 12-36-48z" fill="url(#glass-cyan)" />
+          <path d="M982 418c18-10 40-10 62 2" stroke="#FFFFFF" stroke-width="2" opacity=".38" />
+        </g>
+        <g class="float-3 glass-lines" stroke="#FFFFFF" stroke-width="2.4" opacity=".42">
+          <path d="M760 640h92M806 594v92" />
+          <path d="M438 438h78M477 400v78" />
+          <path d="M1058 698h60M1088 668v60" />
+          <circle cx="604" cy="612" r="22" fill="url(#glass-violet)" opacity=".66" />
+          <circle cx="74" cy="448" r="18" fill="url(#glass-cyan)" opacity=".62" />
+          <path d="M588 598c10-7 24-6 33 1" stroke="#FFFFFF" stroke-width="1.8" opacity=".42" />
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <nav class="app-quicknav feed-quicknav" aria-label="Rychlé akce feedu">
+    <div class="app-quicknav__group">
+      <button class="btn btn-tertiary app-nav-btn" id="feedLogout" type="button">Odhlásit se</button>
+      <button class="btn btn-secondary app-nav-btn" id="feedSettings" type="button">⚙️ Nastavení</button>
+    </div>
+    <div class="app-quicknav__group app-quicknav__group--main">
+      <button class="btn btn-secondary app-nav-btn" id="profileLink" type="button">Můj profil</button>
+      <button class="btn btn-primary app-nav-btn" id="feedChatsCorner" type="button">💬 Chaty</button>
+    </div>
+  </nav>
+  <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+
+  <main class="page app-page">
+    <section class="feed-card card" aria-label="Veřejná nástěnka">
+      <header class="feed-hero">
+        <div class="feed-hero__left" style="display:flex; gap:20px; align-items:flex-start;">
+          <img src="Anuk-logo.png" alt="Logo" class="logo" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">
+          <div>
+            <div class="logo" aria-hidden="true">
+              <span class="logo-dot"></span>
+              <span class="logo-text">Anuk</span>
+            </div>
+            <h1>Veřejná nástěnka</h1>
+            <p>Najděte uživatele, objevujte příspěvky a reagujte.</p>
+          </div>
+        </div>
+      </header>
+
+      <div style="display:flex; gap:10px; margin:0 0 14px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" id="feedTabPublic" type="button">🌍 Veřejné</button>
+        <button class="btn btn-secondary" id="feedTabFollowing" type="button">👁️ Sleduji</button>
+      </div>
+
+      <div class="feed-topbar feed-topbar--v2">
+        <div class="feed-search">
+          <input id="feedSearch" type="search" placeholder="Hledat příspěvky / uživatele / role..." aria-label="Vyhledat" />
+        </div>
+        <div class="feed-actions">
+          <button class="btn btn-secondary" id="feedNotificationsButton" type="button">🔔 Oznámení</button>
+          <button class="btn btn-secondary" id="feedUsersButton" type="button"> Uživatelé</button>
+          <button class="btn btn-secondary" id="feedLiveButton" type="button">Živé</button>
+          <button class="btn btn-secondary" id="feedPostText" type="button"> Text</button>
+          <button class="btn btn-secondary" id="feedPostCamera" type="button"> Fotit</button>
+          <button class="btn btn-secondary" id="feedPostVideo" type="button"> Video</button>
+          <button class="btn btn-secondary" id="feedPostFile" type="button"> Nahrát</button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin:0 0 14px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" id="feedTypeAll" data-feed-type="all">✨ Vše</button>
+        <button class="btn btn-secondary" type="button" id="feedTypeImages" data-feed-type="image">🖼️ Fotky</button>
+        <button class="btn btn-secondary" type="button" id="feedTypeVideos" data-feed-type="video">🎬 Videa</button>
+        <button class="btn btn-secondary" type="button" id="feedTypeText" data-feed-type="text">📝 Text</button>
+      </div>
+
+      <div class="feed-list" id="feedList">
+        <div class="feed-empty">Načítám příspěvky...</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: textový příspěvek -->
+  <div class="modal" id="postTextModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="postTextTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="postTextTitle">Nový textový příspěvek</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <form class="modal__body" id="postTextForm">
+        <div class="text-compose">
+          <div class="text-compose__main">
+            <label class="field">
+              <span class="field__label">Nadpis</span>
+              <input class="field__input" type="text" name="title" placeholder="Např. Dneska..." required data-text-style />
+            </label>
+            <label class="field">
+              <span class="field__label">Viditelnost</span>
+              <select class="field__input" name="visibility">
+                <option value="public" selected>Veřejné</option>
+                <option value="followers">Jen pro sledované</option>
+              </select>
+            </label>
+            <label class="field text-compose__textarea">
+              <span class="field__label">Text</span>
+              <textarea class="field__input" name="text" rows="8" placeholder="Napište obsah příspěvku..." required data-text-style></textarea>
+            </label>
+          </div>
+          <aside class="text-compose__tools" aria-label="Vzhled textového příspěvku">
+            <div class="text-tool-group">
+              <span class="field__label">Styl pozadí</span>
+              <div class="text-preset-row">
+                <button class="text-preset is-active" type="button" data-text-preset="soft" aria-label="Jemné pozadí"></button>
+                <button class="text-preset text-preset--sunset" type="button" data-text-preset="sunset" aria-label="Teplý západ"></button>
+                <button class="text-preset text-preset--ocean" type="button" data-text-preset="ocean" aria-label="Modrá vlna"></button>
+                <button class="text-preset text-preset--ink" type="button" data-text-preset="ink" aria-label="Tmavý styl"></button>
+                <button class="text-preset text-preset--paper" type="button" data-text-preset="paper" aria-label="Papír"></button>
+              </div>
+            </div>
+            <div class="text-tool-grid">
+              <label class="field">
+                <span class="field__label">Písmo</span>
+                <select class="field__input" name="fontFamily" data-text-style>
+                  <option value="Inter" selected>Inter</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Trebuchet MS">Trebuchet</option>
+                  <option value="Courier New">Monospace</option>
+                  <option value="Impact">Impact</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field__label">Velikost</span>
+                <input class="field__input" type="range" name="fontSize" min="16" max="34" value="20" data-text-style />
+              </label>
+              <label class="field">
+                <span class="field__label">Barva textu</span>
+                <input class="field__input field__input--color" type="color" name="textColor" value="#f8fafc" data-text-style />
+              </label>
+              <label class="field">
+                <span class="field__label">Pozadí</span>
+                <input class="field__input field__input--color" type="color" name="backgroundColor" value="#1f2937" data-text-style />
+              </label>
+              <label class="field">
+                <span class="field__label">Zarovnání</span>
+                <select class="field__input" name="textAlign" data-text-style>
+                  <option value="left" selected>Vlevo</option>
+                  <option value="center">Na střed</option>
+                  <option value="right">Vpravo</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field__label">Rámeček</span>
+                <select class="field__input" name="borderStyle" data-text-style>
+                  <option value="glass" selected>Sklo</option>
+                  <option value="clean">Čistý</option>
+                  <option value="bold">Výrazný</option>
+                </select>
+              </label>
+            </div>
+            <div class="text-toggle-row">
+              <label class="text-toggle"><input type="checkbox" name="bold" data-text-style /> Tučně</label>
+              <label class="text-toggle"><input type="checkbox" name="italic" data-text-style /> Kurzíva</label>
+              <label class="text-toggle"><input type="checkbox" name="shadow" checked data-text-style /> Stín</label>
+            </div>
+            <div class="text-post-preview" id="postTextPreview" aria-live="polite">
+              <strong>Náhled příspěvku</strong>
+              <span>Text se zobrazí tady.</span>
+            </div>
+          </aside>
+        </div>
+        <div class="modal__footer">
+          <button class="btn btn-primary" type="submit">Publikovat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: chaty -->
+  <div class="modal" id="chatsModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="chatsModalTitle">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="chatsModalTitle">Chaty</div>
+          <div class="account-label">Vzájemné sledování píše přímo, jednostranné sledování jde do žádostí.</div>
+        </div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body chat-shell">
+        <aside class="chat-sidebar">
+          <label class="field">
+            <span class="field__label">Vyhledat sledované</span>
+            <input class="field__input" type="search" id="chatSearch" placeholder="Jméno uživatele..." />
+          </label>
+          <div class="chat-tabs" role="tablist" aria-label="Chaty">
+            <button class="reaction-btn active" type="button" data-chat-tab="threads">Chaty</button>
+            <button class="reaction-btn" type="button" data-chat-tab="requests">Žádosti</button>
+            <button class="reaction-btn" type="button" data-chat-tab="contacts">Kontakty</button>
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </aside>
+        <section class="chat-panel">
+          <div class="chat-panel__empty" id="chatEmpty">Vyber konverzaci nebo uživatele ze seznamu.</div>
+          <div class="chat-panel__content" id="chatContent" hidden>
+            <header class="chat-header">
+              <div class="user-row__left">
+                <div class="user-row__avatar" id="chatAvatar"></div>
+                <div class="user-row__name">
+                  <strong id="chatName">Chat</strong>
+                  <span id="chatMeta">Připraveno</span>
+                </div>
+              </div>
+              <div class="chat-call-actions">
+                <button class="reaction-btn" id="chatCallAudio" type="button">☎️ Volat</button>
+                <button class="reaction-btn" id="chatCallVideo" type="button">📹 Kamera</button>
+              </div>
+            </header>
+            <div class="chat-request-bar" id="chatRequestBar" hidden>
+              <span>Žádost o zprávu</span>
+              <button class="reaction-btn" type="button" id="chatAcceptRequest">Přijmout</button>
+              <button class="reaction-btn" type="button" id="chatRejectRequest">Odmítnout</button>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <form class="chat-composer" id="chatForm">
+              <button class="reaction-btn chat-tools-toggle" type="button" id="chatToolsToggle" aria-label="Přílohy">⌄</button>
+              <div class="chat-tools" id="chatTools" hidden>
+                <button type="button" data-chat-tool="camera">📸 Vyfotit</button>
+                <button type="button" data-chat-tool="video">🎬 Nahrát video</button>
+                <button type="button" data-chat-tool="image">🖼️ Poslat foto</button>
+              </div>
+              <input type="file" id="chatAttachmentInput" accept="image/*,video/*" hidden />
+              <textarea id="chatMessageInput" rows="1" placeholder="Napiš zprávu..." maxlength="2000"></textarea>
+              <button class="reaction-btn" type="button" id="chatEmojiToggle">😊</button>
+              <div class="chat-emoji-panel" id="chatEmojiPanel" hidden></div>
+              <button class="btn btn-primary" type="submit">➤</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: nahrát soubor -->
+  <div class="modal" id="postUploadModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="postUploadTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="postUploadTitle">Nahrát fotku / video</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <form class="modal__body" id="postUploadForm">
+        <label class="field">
+          <span class="field__label">Nadpis</span>
+          <input class="field__input" type="text" name="title" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Viditelnost</span>
+          <select class="field__input" name="visibility">
+            <option value="public" selected>Veřejné</option>
+            <option value="followers">Jen pro sledované</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">Popis</span>
+          <textarea class="field__input" name="description" rows="3" placeholder="Krátký popis do feedu"></textarea>
+        </label>
+        <label class="field">
+          <span class="field__label">Typ videa</span>
+          <select class="field__input" name="videoKind">
+            <option value="video" selected>Video</option>
+            <option value="short">Short (krátké)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">Soubor</span>
+          <input class="field__input" type="file" name="mediaFile" accept="image/*,video/*" required />
+        </label>
+        <div class="modal__footer">
+          <button class="btn btn-primary" type="submit">Publikovat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: fotit (kamera) -->
+  <div class="modal" id="postCameraModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="postCameraTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="postCameraTitle">Vyfotit a publikovat</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="camera-preview">
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <canvas id="cameraCanvas" hidden></canvas>
+          <div class="camera-preview-status" id="cameraStatus">Kamera se spustí po povolení oprávnění.</div>
+        </div>
+        <form id="postCameraForm" style="margin-top:14px;">
+          <label class="field">
+            <span class="field__label">Nadpis</span>
+            <input class="field__input" type="text" name="title" value="Fotka z kamery" required />
+          </label>
+          <label class="field">
+            <span class="field__label">Viditelnost</span>
+            <select class="field__input" name="visibility">
+              <option value="public" selected>Veřejné</option>
+              <option value="followers">Jen pro sledované</option>
+            </select>
+          </label>
+          <div class="camera-actions">
+            <button class="btn btn-secondary" type="button" id="cameraSnapButton"> Vyfotit</button>
+            <button class="btn btn-primary" type="submit">Publikovat</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: nahrání videa -->
+  <div class="modal" id="postVideoModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="postVideoTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="postVideoTitle">Nahrát video</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="video-duration-select" id="videoDurationSelect" style="margin-bottom:20px; display:none;">
+          <span class="field__label" style="display:block; margin-bottom:10px;">Vyberte dobu trvání videa:</span>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" id="videoDuration30s" type="button" data-duration="30"> 30 sekund</button>
+            <button class="btn btn-secondary" id="videoDuration90s" type="button" data-duration="90"> 1:30 minuty</button>
+          </div>
+        </div>
+        <div class="video-recording-preview" id="videoRecordingPreview" style="margin-bottom:20px; display:none;">
+          <div style="position:relative; background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; margin-bottom:10px;">
+            <video id="videoRecordingCamera" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+            <div style="position:absolute; top:10px; right:10px; background:#ff0000; color:#fff; padding:8px 12px; border-radius:4px; font-weight:bold;" id="videoTimer">--:--</div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+            <div style="font-size:14px;" id="videoDurationLabel">Vyberte dobu trvání</div>
+          </div>
+          <form id="postVideoForm" style="margin-top:14px;">
+            <label class="field">
+              <span class="field__label">Nadpis</span>
+              <input class="field__input" type="text" name="title" value="Video" required />
+            </label>
+            <label class="field">
+              <span class="field__label">Popis</span>
+              <textarea class="field__input" name="description" rows="2" placeholder="Krátký popis videa..."></textarea>
+            </label>
+            <label class="field">
+              <span class="field__label">Viditelnost</span>
+              <select class="field__input" name="visibility">
+                <option value="public" selected>Veřejné</option>
+                <option value="followers">Jen pro sledované</option>
+              </select>
+            </label>
+            <div class="video-actions" style="display:flex; gap:10px;">
+              <button class="btn btn-secondary" type="button" id="videoStartButton"> Spustit záznam</button>
+              <button class="btn btn-tertiary" type="button" id="videoStopButton" style="display:none;"> Zastavit záznam</button>
+              <button class="btn btn-primary" type="submit" style="display:none;" id="videoPublishButton">Publikovat</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: vyhledávání uživatelů -->
+  <div class="modal" id="usersModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="usersModalTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="usersModalTitle">Uživatelé</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body">
+        <label class="field">
+          <span class="field__label">Vyhledat uživatele</span>
+          <input class="field__input" type="search" id="usersSearch" placeholder="Jméno / role / kontakt..." />
+        </label>
+        <div class="users-list" id="usersList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: notifikace (Žádosti o sledování + ostatní) -->
+  <div class="modal" id="notificationsModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="notificationsModalTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="notificationsModalTitle">Oznámení</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div id="followRequestsList" style="margin-bottom:14px;"></div>
+        <div style="display:flex; gap:10px; align-items:center; justify-content:space-between; margin:14px 0 10px;">
+          <strong>Historie</strong>
+          <button class="btn btn-tertiary" id="notificationsReadAll" type="button">Označit vše jako přečtené</button>
+        </div>
+        <div id="notificationsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Živé vysílání (WebRTC) -->
+  <div class="modal" id="liveModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="true" aria-hidden="true"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="liveModalTitle">
+      <div class="modal__header">
+        <div class="modal__title" id="liveModalTitle">Živé vysílání</div>
+        <button class="modal__close" type="button" aria-label="Zavřít" data-close="true">&times;</button>
+      </div>
+      <div class="modal__body">
+        <section class="live-public live-card" aria-label="Veřejné vysílání">
+          <div class="live-public__header">
+            <div>
+              <div class="live-block__title" style="margin:0;">Veřejné vysílání</div>
+              <div class="account-label">Zobrazí se všem uživatelům ve feedu.</div>
+            </div>
+            <button class="btn btn-secondary" id="liveRefreshPublic" type="button">Aktualizovat</button>
+          </div>
+          <div class="live-public__list" id="livePublicList"></div>
+        </section>
+
+        <div class="live-actions live-actions--top">
+          <button class="btn btn-secondary" id="liveFullscreenButton" type="button">⛶ Celá obrazovka</button>
+        </div>
+
+        <div class="live-grid live-grid--simple live-launcher">
+          <div class="live-block live-launch-card">
+            <div class="live-block__title">Spustit live</div>
+            <div class="live-start-panel">
+              <strong>Soukromě nebo veřejně</strong>
+              <span>Soukromé live vytvoří kód pro pozvané. Veřejné live se ukáže ve feedu všem uživatelům.</span>
+            </div>
+            <label class="field" style="margin-top:12px;">
+              <span class="field__label">Název veřejného live</span>
+              <input class="field__input" id="liveTitle" type="text" placeholder="např. Live trénink / Q&A" />
+            </label>
+            <div class="live-actions">
+              <button class="btn btn-primary" id="liveStartPrivateButton" type="button">Spustit soukromé</button>
+              <button class="btn btn-secondary" id="liveStartPublicButton" type="button">Spustit veřejné</button>
+              <button class="btn btn-tertiary" id="liveStopButton" type="button">Zastavit</button>
+            </div>
+          </div>
+          <div class="live-block live-launch-card">
+            <div class="live-block__title">Sledovat</div>
+            <div class="live-start-panel">
+              <strong>Kód soukromé místnosti</strong>
+              <span>Divák po připojení uvidí stav spojení, video, komentáře a reakce v jednom okně.</span>
+            </div>
+            <label class="field" style="margin-top:12px;">
+              <span class="field__label">Kód místnosti</span>
+              <input class="field__input" id="liveJoinCode" type="text" placeholder="např. live-abc123" />
+            </label>
+            <div class="live-actions">
+              <button class="btn btn-primary" id="liveJoinButton" type="button">Připojit se</button>
+              <button class="btn btn-tertiary" id="liveLeaveButton" type="button">Odpojit</button>
+            </div>
+          </div>
+        </div>
+        <div class="hint" id="liveStatus" style="text-align:left;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Samostatné okno: studio vysílatele -->
+  <div class="modal live-studio-modal" id="liveStudioModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-studio="true" aria-hidden="true"></div>
+    <div class="modal__panel modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="liveStudioTitle">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="liveStudioTitle">Live studio</div>
+          <div class="account-label" id="liveStudioRoomLabel">Soukromé vysílání</div>
+        </div>
+        <button class="modal__close" type="button" aria-label="Zavřít studio" id="liveStudioClose">&times;</button>
+      </div>
+      <div class="modal__body live-studio-shell">
+        <section class="live-studio-main">
+          <div class="live-private-code">
+            <div>
+              <span>Kód místnosti</span>
+              <strong id="liveStudioRoomCode">-</strong>
+            </div>
+            <button class="reaction-btn" id="liveStudioGenerateCode" type="button">Vygenerovat</button>
+            <button class="reaction-btn" id="liveStudioCopyCode" type="button">Kopírovat</button>
+            <button class="reaction-btn" id="liveStudioShareFollowers" type="button">Sdílet sledujícím</button>
+          </div>
+          <div class="live-audience" id="liveStudioAudience">
+            <div class="live-audience__stats">
+              <span id="liveStudioViewerCount">👁️ 0 diváků</span>
+              <span id="liveStudioParticipantCount">👥 1 účastník</span>
+            </div>
+            <div class="live-audience__list" id="liveStudioParticipants"></div>
+          </div>
+          <div class="live-stage" id="liveStage">
+            <video id="liveLocalVideo" class="live-video live-video--stage" muted playsinline autoplay></video>
+            <video id="liveCameraOverlay" class="live-camera-overlay" muted playsinline autoplay hidden></video>
+            <div class="live-stage__badge" id="liveStudioBadge">Studio připraveno</div>
+          </div>
+          <div class="live-studio-controls" aria-label="Ovládání vysílatele">
+            <button class="btn btn-primary" id="liveStudioStart" type="button">Začít stream</button>
+            <button class="reaction-btn" id="liveToggleCamera" type="button">📷 Kamera</button>
+            <button class="reaction-btn" id="liveToggleMic" type="button">🎙️ Mikrofon</button>
+            <button class="reaction-btn" id="liveSwitchCamera" type="button">🔁 Přepnout kameru</button>
+            <button class="reaction-btn" id="liveDeviceTest" type="button">✓ Test zařízení</button>
+            <button class="reaction-btn" id="liveShareScreen" type="button">🖥️ Plocha</button>
+            <button class="reaction-btn" id="liveCallAdmin" type="button">🚨 Zavolat admina</button>
+            <button class="btn btn-tertiary" id="liveStudioStop" type="button">Zastavit vysílání</button>
+          </div>
+        </section>
+        <aside class="live-block live-chat live-chat--studio" id="liveStudioChatPanel" aria-label="Komentáře živého vysílání ve studiu" hidden>
+          <div class="live-chat__header">
+            <div>
+              <div class="live-block__title">Live komentáře</div>
+              <div class="account-label" id="liveStudioReactionSummary">👍 0 · ❤️ 0 · 🔥 0 · 👏 0</div>
+            </div>
+            <div class="live-chat__reactions" aria-label="Reakce">
+              <button class="reaction-btn" type="button" data-live-reaction="like">👍</button>
+              <button class="reaction-btn" type="button" data-live-reaction="heart">❤️</button>
+              <button class="reaction-btn" type="button" data-live-reaction="fire">🔥</button>
+              <button class="reaction-btn" type="button" data-live-reaction="clap">👏</button>
+            </div>
+          </div>
+          <div class="live-chat__list" id="liveStudioChatList">
+            <div class="feed-empty">Zatím žádné live komentáře.</div>
+          </div>
+          <form class="live-chat__form" id="liveStudioChatForm">
+            <input class="field__input" id="liveStudioChatInput" type="text" maxlength="500" placeholder="Napiš live komentář..." />
+            <button class="btn btn-primary" type="submit">➤</button>
+          </form>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- Samostatné okno: jednoduché veřejné vysílání -->
+  <div class="modal live-public-studio-modal" id="livePublicStudioModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-public-studio="true" aria-hidden="true"></div>
+    <div class="modal__panel live-public-player" role="dialog" aria-modal="true" aria-labelledby="livePublicStudioTitle">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="livePublicStudioTitle">Veřejné live</div>
+          <div class="account-label">Jednoduchý kamerový režim</div>
+        </div>
+        <button class="modal__close" type="button" aria-label="Zavřít veřejné studio" id="livePublicStudioClose">&times;</button>
+      </div>
+      <div class="modal__body live-public-player__body">
+        <div class="live-public-phone">
+          <video id="livePublicPreview" class="live-public-phone__video" muted playsinline autoplay></video>
+          <div class="live-video-status" id="livePublicPreviewStatus">Kamera je připravená ke spuštění.</div>
+          <div class="live-public-phone__top">LIVE</div>
+          <div class="live-public-phone__audience" id="livePublicAudienceBadge">👁️ 0</div>
+          <div class="live-public-phone__quick">
+            <button class="btn btn-primary" id="livePublicStudioStart" type="button">Začít</button>
+            <button class="btn btn-tertiary" id="livePublicStudioStop" type="button">Stop</button>
+            <button class="reaction-btn" id="livePublicToolsToggle" type="button" aria-expanded="false" title="Funkce vysílání">⌃</button>
+          </div>
+          <div class="live-public-phone__bottom" id="livePublicTools" hidden>
+            <button class="reaction-btn" id="livePublicToggleCamera" type="button">📷</button>
+            <button class="reaction-btn" id="livePublicToggleMic" type="button">🎙️</button>
+            <button class="reaction-btn" id="livePublicSwitchCamera" type="button" title="Přepnout přední/zadní kameru">🔁</button>
+            <button class="reaction-btn" id="livePublicDeviceTest" type="button" title="Otestovat kameru, mikrofon a HTTPS">✓</button>
+            <button class="reaction-btn" id="livePublicMirror" type="button" title="Zrcadlit vlastní náhled">⇄</button>
+            <button class="reaction-btn" id="livePublicQuality" type="button" title="Přepnout kvalitu vysílání">HD</button>
+          </div>
+        </div>
+        <aside class="live-block live-chat live-chat--public" id="livePublicChatPanel" aria-label="Komentáře veřejného živého vysílání" hidden>
+          <div class="live-chat__header">
+            <div>
+              <div class="live-block__title">Komentáře</div>
+              <div class="account-label" id="livePublicReactionSummary">👍 0 · ❤️ 0 · 🔥 0 · 👏 0</div>
+            </div>
+            <div class="live-chat__reactions">
+              <button class="reaction-btn" type="button" data-live-reaction="like">👍</button>
+              <button class="reaction-btn" type="button" data-live-reaction="heart">❤️</button>
+              <button class="reaction-btn" type="button" data-live-reaction="fire">🔥</button>
+              <button class="reaction-btn" type="button" data-live-reaction="clap">👏</button>
+            </div>
+          </div>
+          <div class="live-audience" id="livePublicAudience">
+            <div class="live-audience__stats">
+              <span id="livePublicViewerCount">👁️ 0 diváků</span>
+              <span id="livePublicParticipantCount">👥 1 účastník</span>
+            </div>
+            <div class="live-audience__list" id="livePublicParticipants"></div>
+          </div>
+          <div class="live-chat__list" id="livePublicChatList"></div>
+          <form class="live-chat__form" id="livePublicChatForm">
+            <input class="field__input" id="livePublicChatInput" type="text" maxlength="500" placeholder="Napiš komentář..." />
+            <button class="btn btn-primary" type="submit">➤</button>
+          </form>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- Samostatné okno: sledování živého vysílání -->
+  <div class="modal live-viewer-modal" id="liveViewerModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-viewer="true" aria-hidden="true"></div>
+    <div class="modal__panel modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="liveViewerTitle">
+      <div class="modal__header">
+        <div>
+          <div class="modal__title" id="liveViewerTitle">Sleduješ live</div>
+          <div class="account-label" id="liveViewerRoomLabel">Připojování...</div>
+        </div>
+        <button class="modal__close" type="button" aria-label="Zavřít live" id="liveViewerClose">&times;</button>
+      </div>
+      <div class="modal__body live-viewer-shell">
+        <section class="live-viewer-video">
+          <video id="liveRemoteVideo" class="live-video live-video--viewer" playsinline autoplay controls></video>
+          <div class="live-video-status live-video-status--viewer" id="liveViewerStatus">Čekám na stream...</div>
+          <div class="live-receive-meter" id="liveReceiveMeter" aria-live="polite">
+            <span data-live-receive-video>Video: čekám</span>
+            <span data-live-receive-audio>Audio: čekám</span>
+          </div>
+          <div class="live-viewer-controls" aria-label="Ovládání sledování">
+            <button class="reaction-btn" id="liveViewerMute" type="button">Zvuk</button>
+            <button class="reaction-btn" id="liveViewerFit" type="button">Přizpůsobit</button>
+            <button class="reaction-btn" id="liveViewerFullscreen" type="button">Celá obrazovka</button>
+            <button class="reaction-btn" id="liveViewerReconnect" type="button">Znovu připojit</button>
+          </div>
+        </section>
+        <aside class="live-block live-chat live-chat--viewer" id="liveViewerChatPanel" aria-label="Komentáře sledování živého vysílání">
+          <div class="live-chat__header">
+            <div>
+              <div class="live-block__title">Komentáře</div>
+              <div class="account-label" id="liveViewerReactionSummary">👍 0 · ❤️ 0 · 🔥 0 · 👏 0</div>
+            </div>
+            <div class="live-chat__reactions">
+              <button class="reaction-btn" type="button" data-live-reaction="like">👍</button>
+              <button class="reaction-btn" type="button" data-live-reaction="heart">❤️</button>
+              <button class="reaction-btn" type="button" data-live-reaction="fire">🔥</button>
+              <button class="reaction-btn" type="button" data-live-reaction="clap">👏</button>
+            </div>
+          </div>
+          <div class="live-audience" id="liveViewerAudience">
+            <div class="live-audience__stats">
+              <span id="liveViewerViewerCount">👁️ 0 diváků</span>
+              <span id="liveViewerParticipantCount">👥 1 účastník</span>
+            </div>
+            <div class="live-audience__list" id="liveViewerParticipants"></div>
+          </div>
+          <div class="live-chat__list" id="liveViewerChatList"></div>
+          <form class="live-chat__form" id="liveViewerChatForm">
+            <input class="field__input" id="liveViewerChatInput" type="text" maxlength="500" placeholder="Napiš komentář..." />
+            <button class="btn btn-primary" type="submit">➤</button>
+          </form>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script src="three-bg.js?v=2" type="text/javascript"></script>
+  <script src="appearance-settings.js?v=3"></script>
+  <script src="feed.js?v=31" type="text/javascript"></script>
+  <script src="chat.js?v=19" type="text/javascript"></script>
+  <script src="media-optimizer.js?v=2" type="text/javascript"></script>
+  <script src="ui-text-fixes.js?v=1" type="text/javascript"></script>
+</body>
+</html>
